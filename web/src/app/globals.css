@@ -3,53 +3,54 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * One calm canvas. No borders, no chrome: content carries the color, the interface stays
- * in warm greys, and a single orange marks what is yours (labels, focus, the caret).
+ * Ink on handmade paper. The ground is warm khadi with a faint grain, the ink is
+ * indigo-black, and indigo itself marks what is yours: your notes, your tags, your cursor.
+ * Everything else stays quiet so saved images and colors carry the page.
  */
 @theme {
-  --color-canvas: #f3f2ee;
-  --color-card: #ffffff;
-  --color-well: #ebe9e3;
-  --color-ink: #191817;
-  --color-ink-2: #45423d;
-  --color-muted: #6b675f;
-  --color-hint: #8f8a80;
-  --color-hairline: rgb(25 24 23 / 0.07);
-  --color-accent: #ff5a1f;
-  --color-accent-ink: #c2410c;
-  --color-accent-wash: #fff0e8;
-  --color-mark: #ffe3c2;
-  --color-danger: #c43d2b;
+  --color-canvas: #efebe2;
+  --color-card: #fbf9f4;
+  --color-well: #e6e1d6;
+  --color-ink: #1c1b29;
+  --color-ink-2: #43404f;
+  --color-muted: #6a6574;
+  --color-hint: #8d8794;
+  --color-hairline: rgb(28 27 41 / 0.08);
+  --color-accent: #3b3fc4;
+  --color-accent-ink: #3236ad;
+  --color-accent-wash: #e4e3f6;
+  --color-mark: #dcdaf7;
+  --color-danger: #b4372a;
 
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
 
-  --radius-card: 12px;
-  --shadow-card: 0 1px 1px rgb(25 24 23 / 0.03), 0 2px 6px rgb(25 24 23 / 0.04);
-  --shadow-hover: 0 2px 4px rgb(25 24 23 / 0.04), 0 14px 34px rgb(25 24 23 / 0.1);
-  --shadow-panel: 0 30px 80px rgb(25 24 23 / 0.18);
+  --radius-card: 14px;
+  --shadow-card: 0 0 0 1px rgb(28 27 41 / 0.04), 0 1px 2px rgb(28 27 41 / 0.04), 0 3px 8px rgb(28 27 41 / 0.03);
+  --shadow-hover: 0 0 0 1px rgb(28 27 41 / 0.05), 0 4px 8px rgb(28 27 41 / 0.04), 0 18px 40px rgb(28 27 41 / 0.1);
+  --shadow-panel: 0 30px 80px rgb(28 27 41 / 0.2);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
   [data-theme="dark"] {
-    --color-canvas: #111110;
-    --color-card: #1b1a19;
-    --color-well: #242321;
-    --color-ink: #f1efea;
-    --color-ink-2: #cfccc4;
-    --color-muted: #a29d93;
-    --color-hint: #7c776e;
+    --color-canvas: #13131b;
+    --color-card: #1c1c26;
+    --color-well: #262632;
+    --color-ink: #ecebf3;
+    --color-ink-2: #c9c7d6;
+    --color-muted: #9d9aad;
+    --color-hint: #78758a;
     --color-hairline: rgb(255 255 255 / 0.07);
-    --color-accent: #ff7a45;
-    --color-accent-ink: #ff9a6e;
-    --color-accent-wash: #2c1b12;
-    --color-mark: #5a3517;
-    --color-danger: #ef7d6a;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-hover: 0 14px 34px rgb(0 0 0 / 0.55);
+    --color-accent: #9a9dff;
+    --color-accent-ink: #b0b2ff;
+    --color-accent-wash: #272845;
+    --color-mark: #34366b;
+    --color-danger: #f08b7b;
+    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04), 0 2px 6px rgb(0 0 0 / 0.35);
+    --shadow-hover: 0 0 0 1px rgb(255 255 255 / 0.06), 0 18px 40px rgb(0 0 0 / 0.55);
     --shadow-panel: 0 30px 80px rgb(0 0 0 / 0.6);
   }
 
@@ -66,6 +67,23 @@
   }
   body {
     background: var(--color-canvas);
+  }
+  /* Paper grain: a fixed, faint noise layer under everything. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .15 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  [data-theme="dark"] body::before {
+    opacity: 0.6;
+  }
+  /* Fraunces at its softest: rounded terminals read like ink, not print. */
+  .font-display {
+    font-variation-settings: "SOFT" 100, "WONK" 0;
   }
   ::selection {
     background: var(--color-mark);

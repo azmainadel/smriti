@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Instrument_Serif, Newsreader } from "next/font/google";
+import { Fraunces, Hanken_Grotesk, Newsreader } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/Providers";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
-const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-// Display serif for the search field, quotes and big moments; Newsreader for long reading.
-const display = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument", display: "swap" });
+const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", display: "swap" });
+// Fraunces for the voice of the app (search, titles, quotes); Newsreader for long reading.
+const display = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], axes: ["SOFT", "WONK", "opsz"], variable: "--font-fraunces", display: "swap" });
 const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap" });
 
 export const metadata: Metadata = {
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f2ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#111110" },
+    { media: "(prefers-color-scheme: light)", color: "#efebe2" },
+    { media: "(prefers-color-scheme: dark)", color: "#13131b" },
   ],
   width: "device-width",
   initialScale: 1,
