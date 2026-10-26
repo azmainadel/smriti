@@ -33,8 +33,8 @@ export default function DigestPage() {
   return (
     <div className="mx-auto max-w-3xl pb-16 pt-10 sm:pt-16">
       <p className="label text-accent-ink">Week of {week}</p>
-      <h1 className="mt-3 font-display text-5xl leading-[1.05] sm:text-6xl">From your past</h1>
-      <p className="mt-4 max-w-md text-[15px] text-muted">Seven things you saved and may want to see again, chosen by what you are into now and what you have not looked at in a while.</p>
+      <h1 className="mt-3 font-display text-5xl leading-[1.05] sm:text-6xl">Look back</h1>
+      <p className="mt-4 max-w-md text-[15px] text-muted">Seven things worth another look, picked from what you are into now and what you have not opened in a while.</p>
 
       {isPending && <div className="breathe mt-14 h-72 rounded-2xl bg-well" />}
 

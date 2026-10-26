@@ -8,7 +8,7 @@ import { recordEvent, useResurface } from "@/lib/queries";
 import { useHotkeys } from "@/lib/shortcuts";
 
 /** One thing at a time, slowly. ← → or space to move, Enter to open, D for "not now". */
-export default function SerendipityPage() {
+export default function WanderPage() {
   const { data, isPending } = useResurface("serendipity");
   const { openItem } = useShell();
   const [index, setIndex] = useState(0);
@@ -32,7 +32,7 @@ export default function SerendipityPage() {
   if (!pick)
     return (
       <p className="mx-auto mt-32 max-w-md text-center font-display text-3xl italic text-hint">
-        Serendipity needs a library with some history. Come back once a few things are older than a couple of days.
+        Wandering needs somewhere to go. Save a few more things and come back.
       </p>
     );
 

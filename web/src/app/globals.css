@@ -104,12 +104,14 @@
   }
 }
 
+/* Labels speak in a small italic serif rather than shouting in capitals. */
 @utility label {
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.1;
+  font-weight: 400;
+  font-variation-settings: "SOFT" 100;
 }
 
 /* The reader: one serif, a calm measure. */

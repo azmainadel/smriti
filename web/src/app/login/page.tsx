@@ -37,7 +37,7 @@ function Login() {
         }}
         className="w-full max-w-sm"
       >
-        <h1 className="flex items-center gap-2 font-display text-5xl italic">smriti<span className="mt-4 h-2 w-2 rounded-full bg-accent" /></h1>
+        <h1 className="flex items-baseline gap-3 font-display text-5xl font-medium tracking-[-0.02em]">smriti<span lang="bn" className="text-xl font-normal text-accent">স্মৃতি</span></h1>
         <p className="mt-2 text-muted">Enter the owner secret from your server&apos;s .env. This device gets its own token, revocable from Settings.</p>
         <label className="mt-8 block text-sm font-medium" htmlFor="secret">
           Owner secret

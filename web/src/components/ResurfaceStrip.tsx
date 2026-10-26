@@ -19,8 +19,8 @@ export function ResurfaceStrip({ onOpen, onDelete }: { onOpen: (item: Item) => v
 
   return (
     <section aria-labelledby="past-heading" className="mb-14">
-      <h2 id="past-heading" className="label mb-4 text-hint">
-        From your past
+      <h2 id="past-heading" className="label mb-4 text-[17px] text-muted">
+        Remember these?
       </h2>
       <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:max-w-[60%]">
         {items.map((p) => (

@@ -36,7 +36,7 @@ type Props = {
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <section className="border-t border-hairline px-7 py-6">
-      <h3 className="label mb-3 text-hint">{label}</h3>
+      <h3 className="label mb-3 text-muted">{label}</h3>
       {children}
     </section>
   );
@@ -63,7 +63,7 @@ function Notes({ item }: { item: ItemDetail }) {
         if (e.key === "Escape") (e.stopPropagation(), ref.current?.blur());
       }}
       rows={Math.min(10, Math.max(3, value.split("\n").length + 1))}
-      placeholder="Type here to add a note…"
+      placeholder="What did this make you think of?"
       aria-label="Note"
       className="w-full resize-none rounded-xl bg-well px-4 py-3 text-[14px] leading-relaxed text-ink outline-none placeholder:text-hint focus:bg-accent-wash"
     />
@@ -263,7 +263,7 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
       </div>
 
       {(item.summary || item.key_points.length > 0) && !["note", "quote"].includes(item.type) && (
-        <Section label="TL;DR">
+        <Section label="In short">
           {item.summary && <p className="text-[14px] leading-relaxed text-ink-2">{item.summary}</p>}
           {item.key_points.length > 0 && (
             <ul className="mt-3 space-y-2">
@@ -281,12 +281,12 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
         <Tags item={item} />
       </Section>
 
-      <Section label="Notes">
+      <Section label="Your note">
         <Notes item={item} />
       </Section>
 
       {item.related.length > 0 && (
-        <Section label="Related">
+        <Section label="Connected">
           <ul className="-mx-2 space-y-0.5">
             {item.related.map((r) => (
               <li key={r.item.id}>
@@ -317,7 +317,7 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
         </Section>
       )}
 
-      <Section label="Details">
+      <Section label="About">
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[13px]">
           <dt className="text-hint">Saved</dt>
           <dd className="text-ink-2">{timeAgo(item.saved_at)}</dd>

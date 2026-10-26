@@ -32,7 +32,7 @@ export function NoteCard() {
       className={`rounded-[var(--radius-card)] bg-card p-5 shadow-[var(--shadow-card)] transition-shadow duration-300 ${focused ? "shadow-[var(--shadow-hover)]" : ""}`}
     >
       <label htmlFor="new-note" className="label text-accent-ink">
-        Add a new note
+        Jot something down
       </label>
       <textarea
         id="new-note"
@@ -55,7 +55,7 @@ export function NoteCard() {
             ref.current?.blur();
           }
         }}
-        placeholder="Start typing here…"
+        placeholder="A thought, a quote, a few hex colors…"
         className="mt-3 block w-full resize-none bg-transparent text-[15px] leading-[1.55] text-ink outline-none placeholder:text-hint"
       />
       <p className={`text-[11px] text-hint transition-opacity ${focused ? "opacity-100" : "opacity-0"}`}>

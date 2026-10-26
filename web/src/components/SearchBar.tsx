@@ -35,7 +35,7 @@ export const SearchBar = forwardRef<HTMLInputElement, Props>(function SearchBar(
               e.currentTarget.blur();
             }
           }}
-          placeholder="Search your mind…"
+          placeholder="What do you remember?"
           aria-label="Search your library"
           autoComplete="off"
           spellCheck={false}
