@@ -4,6 +4,7 @@ re-run in bulk when a model improves (POST /admin/reindex)."""
 import asyncio
 import base64
 import hashlib
+import re
 import logging
 import uuid
 from collections.abc import Awaitable, Callable
@@ -85,6 +86,8 @@ async def summarize(ctx: StepContext) -> None:
     if result:
         out, model, tokens, cost = result.output, result.model, result.tokens, result.cost
     else:
+        if item.type == ItemType.pdf and (m := re.search(r"\babstract\b[\s.:—-]*", text[:20_000], re.I)):
+            text = text[m.end() :]  # papers: the abstract says it better than the license line
         summary, points = extractive_summary(text, item.meta.get("description"))
         out, model, tokens, cost = (
             SummaryOut(summary=summary, key_points=points),

@@ -109,7 +109,10 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
       return item.lead_image ? (
         <Lead item={item} />
       ) : (
-        <div className="p-4 text-sm text-muted">{item.title}</div>
+        <div className="p-4">
+          <p className="font-serif text-lg font-semibold leading-snug line-clamp-2">{item.title ?? "Image"}</p>
+          <p className="mt-1 truncate text-sm text-muted">{site || item.url}</p>
+        </div>
       );
     case "quote":
       return (
