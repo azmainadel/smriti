@@ -274,8 +274,10 @@ async def _embed_uncached(
         case "hash":
             return [hash_embed(t, dim) for t in texts], 0
         case "fastembed":
-            model = _fastembed_text(choice.model)
-            vecs = await asyncio.to_thread(lambda: np.array(list(model.embed(texts))))
+            # Loading the model takes seconds on first use: keep it off the event loop too.
+            vecs = await asyncio.to_thread(
+                lambda: np.array(list(_fastembed_text(choice.model).embed(texts)))
+            )
             return _normalize(vecs), 0
         case "ollama":
             async with httpx.AsyncClient(timeout=s.model_timeout_s) as client:
@@ -354,9 +356,8 @@ async def clip_embed_images(images: list[bytes]) -> list[list[float]] | None:
 
     from PIL import Image
 
-    model = _fastembed_image(get_settings().clip_image_model)
-
     def _run() -> np.ndarray:
+        model = _fastembed_image(get_settings().clip_image_model)
         pil = [Image.open(io.BytesIO(b)).convert("RGB") for b in images]
         return np.array(list(model.embed(pil)))
 
