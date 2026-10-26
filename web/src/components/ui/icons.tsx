@@ -61,8 +61,9 @@ export const NoteIcon = (p: IconProps) => (
 );
 export const SettingsIcon = (p: IconProps) => (
   <Icon {...p}>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
+    <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+    <circle cx="16" cy="7" r="2" />
+    <circle cx="10" cy="17" r="2" />
   </Icon>
 );
 export const SunIcon = (p: IconProps) => (

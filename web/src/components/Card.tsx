@@ -116,8 +116,8 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
       );
     case "quote":
       return (
-        <figure className="p-5">
-          <blockquote className="font-serif text-xl leading-snug text-ink">“{meta.quote ?? item.summary ?? item.title}”</blockquote>
+        <figure className="p-4 sm:p-5">
+          <blockquote className="font-serif text-lg leading-snug text-ink sm:text-xl">“{meta.quote ?? item.summary ?? item.title}”</blockquote>
           {(meta.attribution || site) && (
             <figcaption className="mt-3 text-sm text-muted">— {meta.attribution ?? site}</figcaption>
           )}
@@ -125,8 +125,8 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
       );
     case "note":
       return (
-        <div className="p-5">
-          <p className="whitespace-pre-line font-serif text-lg leading-snug text-ink line-clamp-[12]">
+        <div className="p-4 sm:p-5">
+          <p className="whitespace-pre-line font-serif text-base leading-snug text-ink line-clamp-[12] sm:text-lg">
             {item.summary ?? item.title}
           </p>
         </div>
