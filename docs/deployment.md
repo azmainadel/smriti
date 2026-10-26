@@ -1,11 +1,10 @@
 # Deployment
 
-The target is a 2 vCPU, 4 GB VPS or a home server. `docker compose up -d` starts:
+The target is a 2 vCPU, 4 GB VPS or a home server. `docker compose up -d` starts these services (verified end to end with Docker 29):
 
 | Service | Image | Resident memory, measured |
 | --- | --- | --- |
 | `postgres` | pgvector/pgvector:pg17 | depends on `shared_buffers`; defaults are fine to 50k items |
-| `minio` | minio/minio | not measured |
 | `api` | built from `api/` | 635 MB with bge-small and the CLIP text model loaded |
 | `worker` | same image, `smriti work` | 845 MB with bge-small and both CLIP models loaded |
 | `web` | built from `web/` | 185 MB |
@@ -26,13 +25,17 @@ WITH_BROWSER=1 SMRITI_BROWSER_ENABLED=true   # headless Chromium for JS pages an
 WITH_WHISPER=1                               # podcast and video transcription
 ```
 
+## File storage
+
+Originals, archives and images go to the `blobs` volume. To use S3, Cloudflare R2, Backblaze B2 or a MinIO you run yourself, set `SMRITI_STORAGE_BACKEND=s3` and the `SMRITI_S3_*` variables. The spec named MinIO for this, but MinIO stopped publishing container images in 2025, so the default install does not depend on it.
+
 ## Behind a reverse proxy
 
 Serve the web app and the API on their own hostnames, for example `smriti.example.com` and `api.smriti.example.com`. `/stream` is a long-lived server-sent events response: disable proxy buffering for it (`proxy_buffering off;` in nginx, nothing to do in Caddy).
 
 ## Backups
 
-`GET /export` (Settings → Export everything, or `smriti export`) writes a zip with one JSON line per item, all events, and every stored file. For point-in-time backups, back up the Postgres volume and the MinIO bucket together.
+`GET /export` (Settings → Export everything, or `smriti export`) writes a zip with one JSON line per item, all events, and every stored file. For point-in-time backups, back up the `pgdata` and `blobs` volumes together.
 
 ## Observability
 

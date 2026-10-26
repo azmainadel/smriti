@@ -1,4 +1,4 @@
-"""Blob storage for originals, snapshots and assets. S3/MinIO in production, a directory in dev."""
+"""Blob storage for originals, snapshots and assets. A directory by default, any S3-compatible store optionally."""
 
 import asyncio
 import hashlib

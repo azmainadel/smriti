@@ -38,7 +38,7 @@ Without an LLM, Smriti uses extractive summaries and keyword tags, so a fresh in
  web app ◄──┘     <1 s)       │  jobs table  │     │  queue)          │    index
      ▲                        └──────────────┘     └──────────────────┘
      └──── server-sent events: cards fill in live        │
-                                       MinIO ◄────────────┘ originals, archives, images
+                                files ◄───────────────────┘ originals, archives, images
 ```
 
 The API never does heavy work inline. Saving writes a row and enqueues a workflow; the worker runs six idempotent steps (`classify`, `fetch`, `extract`, `snapshot`, `enrich`, `index`) and the API pushes each status change to the browser. More in [docs/architecture.md](docs/architecture.md).
@@ -47,7 +47,7 @@ The API never does heavy work inline. Saving writes a row and enqueues a workflo
 | --- | --- |
 | Web | Next.js 15, TypeScript, Ark UI, Tailwind v4, Motion, TanStack Query, installable PWA |
 | API and worker | FastAPI, Python 3.12, Pydantic v2, SQLAlchemy 2, Alembic |
-| Storage | Postgres 17 with pgvector, MinIO (or a local directory) |
+| Storage | Postgres 17 with pgvector; files on a volume or any S3-compatible store |
 | Models | One adapter over Ollama, any OpenAI-compatible API and local ONNX models (fastembed), cached by input hash |
 | Capture | MV3 extension (Chrome, Firefox), PWA share target, iOS Shortcut, inbound email, CLI |
 
