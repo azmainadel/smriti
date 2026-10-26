@@ -7,11 +7,13 @@ x-api-env: &api-env
   SMRITI_SIGNING_KEY: ${SMRITI_SIGNING_KEY:?set SMRITI_SIGNING_KEY in .env}
   SMRITI_PUBLIC_API_URL: ${SMRITI_PUBLIC_API_URL:-http://localhost:8000}
   SMRITI_CORS_ORIGINS: '["${SMRITI_WEB_URL:-http://localhost:3000}"]'
-  SMRITI_STORAGE_BACKEND: s3
-  SMRITI_S3_ENDPOINT: http://minio:9000
-  SMRITI_S3_BUCKET: smriti
-  SMRITI_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-smriti}
-  SMRITI_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-smriti-minio-secret}
+  # Files live on the `blobs` volume by default. Set these to use any S3-compatible store.
+  SMRITI_STORAGE_BACKEND: ${SMRITI_STORAGE_BACKEND:-local}
+  SMRITI_STORAGE_DIR: /data/blobs
+  SMRITI_S3_ENDPOINT: ${SMRITI_S3_ENDPOINT:-}
+  SMRITI_S3_BUCKET: ${SMRITI_S3_BUCKET:-smriti}
+  SMRITI_S3_ACCESS_KEY: ${SMRITI_S3_ACCESS_KEY:-}
+  SMRITI_S3_SECRET_KEY: ${SMRITI_S3_SECRET_KEY:-}
   SMRITI_LLM_PROVIDER: ${SMRITI_LLM_PROVIDER:-none}
   SMRITI_LLM_MODEL: ${SMRITI_LLM_MODEL:-qwen2.5:3b-instruct}
   SMRITI_CAPTION_MODEL: ${SMRITI_CAPTION_MODEL:-}
@@ -45,29 +47,6 @@ services:
       retries: 20
     restart: unless-stopped
 
-  minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smriti}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smriti-minio-secret}
-    volumes: [minio:/data]
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      retries: 20
-    restart: unless-stopped
-
-  minio-init:
-    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
-    depends_on: { minio: { condition: service_healthy } }
-    entrypoint: >
-      sh -c "mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}
-      && mc mb --ignore-existing local/smriti"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smriti}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smriti-minio-secret}
-
   api:
     build:
       context: ./api
@@ -76,10 +55,9 @@ services:
         WITH_WHISPER: ${WITH_WHISPER:-0}
     environment: *api-env
     ports: ["8000:8000"]
-    volumes: [models:/models]
+    volumes: [models:/models, blobs:/data]
     depends_on:
       postgres: { condition: service_healthy }
-      minio-init: { condition: service_completed_successfully }
     restart: unless-stopped
 
   worker:
@@ -90,7 +68,7 @@ services:
         WITH_WHISPER: ${WITH_WHISPER:-0}
     command: ["smriti", "work"]
     environment: *api-env
-    volumes: [models:/models]
+    volumes: [models:/models, blobs:/data]
     healthcheck: { disable: true }
     depends_on:
       api: { condition: service_healthy }
@@ -113,6 +91,6 @@ services:
 
 volumes:
   pgdata:
-  minio:
+  blobs:
   models:
   ollama:

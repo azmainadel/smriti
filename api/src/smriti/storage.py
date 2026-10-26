@@ -13,6 +13,17 @@ from urllib.parse import quote
 
 from smriti.config import get_settings
 
+# Slim container images ship without /etc/mime.types; register what Smriti stores.
+for _type, _ext in (
+    ("image/webp", ".webp"),
+    ("image/avif", ".avif"),
+    ("text/html", ".html"),
+    ("application/pdf", ".pdf"),
+    ("audio/mpeg", ".mp3"),
+    ("audio/mp4", ".m4a"),
+):
+    mimetypes.add_type(_type, _ext)
+
 
 class Storage(Protocol):
     async def put(self, key: str, data: bytes, content_type: str | None = None) -> None: ...
