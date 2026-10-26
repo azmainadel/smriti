@@ -33,8 +33,13 @@ class Settings(BaseSettings):
     embed_provider: Literal["hash", "fastembed", "ollama", "openai"] = "fastembed"
     embed_model: str = "BAAI/bge-small-en-v1.5"
     embed_dim: int = 384
+    # Cross-modal image search. Text and image models must share one vector space.
     vision_enabled: bool = False
+    clip_text_model: str = "Qdrant/clip-ViT-B-32-text"
+    clip_image_model: str = "Qdrant/clip-ViT-B-32-vision"
     clip_dim: int = 512
+    # Ollama vision model for image captions and alt text; empty disables captions.
+    caption_model: str = ""
     ollama_url: str = "http://localhost:11434"
     openai_base_url: str = "https://api.openai.com/v1"
     openai_api_key: str | None = None
