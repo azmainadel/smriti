@@ -32,8 +32,13 @@ async def _get_browser() -> Any:
     return _browser
 
 
-async def render(url: str | None = None, html: str | None = None, *, screenshot: bool = False,
-                 timeout_s: float = 30) -> tuple[str, bytes | None]:
+async def render(
+    url: str | None = None,
+    html: str | None = None,
+    *,
+    screenshot: bool = False,
+    timeout_s: float = 30,
+) -> tuple[str, bytes | None]:
     """Load a URL (or set raw HTML) and return the rendered DOM and, optionally, a full-page PNG."""
     browser = await _get_browser()
     page = await browser.new_page(
@@ -48,7 +53,9 @@ async def render(url: str | None = None, html: str | None = None, *, screenshot:
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         await page.wait_for_timeout(500)
         content = await page.content()
-        shot = await page.screenshot(full_page=True, type="jpeg", quality=70) if screenshot else None
+        shot = (
+            await page.screenshot(full_page=True, type="jpeg", quality=70) if screenshot else None
+        )
         return content, shot
     finally:
         await page.close()

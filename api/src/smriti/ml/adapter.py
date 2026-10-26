@@ -63,7 +63,9 @@ def _cache_key(choice: ModelChoice, kind: str, payload: Any) -> str:
 
 async def _cache_get(keys: list[str]) -> dict[str, Any]:
     async with get_sessionmaker()() as s:
-        rows = await s.execute(select(ModelCache.key, ModelCache.output).where(ModelCache.key.in_(keys)))
+        rows = await s.execute(
+            select(ModelCache.key, ModelCache.output).where(ModelCache.key.in_(keys))
+        )
         return {k: v for k, v in rows.all()}
 
 
@@ -125,7 +127,9 @@ async def complete_json[M: BaseModel](
     payload = {"system": system, "prompt": prompt, "schema": schema.model_json_schema()}
     key = _cache_key(choice, "json", payload)
     if hit := (await _cache_get([key])).get(key):
-        return CallResult(schema.model_validate(hit["output"]), choice.label, hit["tokens"], 0, 0.0, True)
+        return CallResult(
+            schema.model_validate(hit["output"]), choice.label, hit["tokens"], 0, 0.0, True
+        )
 
     started = time.perf_counter()
     raw, tokens = await _chat(choice, system, prompt, schema.model_json_schema())
@@ -225,8 +229,11 @@ async def describe_image(step: str, image_b64: str, prompt: str) -> CallResult[s
         return CallResult(hit["output"], choice.label, hit["tokens"], 0, 0.0, True)
     started = time.perf_counter()
     raw, tokens = await _chat(
-        choice, "You describe images for search and alt text.", prompt,
-        Caption.model_json_schema(), images=[image_b64],
+        choice,
+        "You describe images for search and alt text.",
+        prompt,
+        Caption.model_json_schema(),
+        images=[image_b64],
     )
     caption = Caption.model_validate_json(_strip_fences(raw)).caption.strip()
     await _cache_put({key: {"output": caption, "tokens": tokens}})
@@ -257,7 +264,9 @@ def _normalize(vectors: np.ndarray) -> list[list[float]]:
     return (vectors / norms).astype(np.float32).tolist()
 
 
-async def _embed_uncached(choice: ModelChoice, texts: list[str], dim: int) -> tuple[list[list[float]], int]:
+async def _embed_uncached(
+    choice: ModelChoice, texts: list[str], dim: int
+) -> tuple[list[list[float]], int]:
     s = get_settings()
     match choice.provider:
         case "hash":

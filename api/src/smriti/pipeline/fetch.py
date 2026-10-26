@@ -28,7 +28,9 @@ async def download(url: str) -> tuple[bytes, str | None, str]:
     s = get_settings()
     headers = {"User-Agent": s.user_agent, "Accept-Language": "en;q=0.9,*;q=0.5"}
     async with (
-        httpx.AsyncClient(timeout=s.fetch_timeout_s, follow_redirects=True, headers=headers) as client,
+        httpx.AsyncClient(
+            timeout=s.fetch_timeout_s, follow_redirects=True, headers=headers
+        ) as client,
         client.stream("GET", url) as r,
     ):
         if r.status_code in (404, 410, 451):

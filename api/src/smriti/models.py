@@ -101,7 +101,9 @@ class Item(Base):
     content: Mapped["ItemContent | None"] = relationship(
         back_populates="item", cascade="all, delete-orphan", uselist=False
     )
-    assets: Mapped[list["Asset"]] = relationship(back_populates="item", cascade="all, delete-orphan")
+    assets: Mapped[list["Asset"]] = relationship(
+        back_populates="item", cascade="all, delete-orphan"
+    )
     tags: Mapped[list["Tag"]] = relationship(secondary="item_tags", lazy="selectin")
 
     __table_args__ = (

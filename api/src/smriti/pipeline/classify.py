@@ -12,11 +12,20 @@ from smriti.pipeline.context import StepContext
 HEX_COLOR = re.compile(r"#?\b([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b")
 
 _URL_RULES: list[tuple[re.Pattern[str], ItemType]] = [
-    (re.compile(r"^https?://(www\.|mobile\.)?(twitter|x)\.com/[^/]+/status/\d+", re.I), ItemType.tweet),
-    (re.compile(r"^https?://(www\.|m\.|music\.)?youtube\.com/(watch|shorts/|live/)", re.I), ItemType.video),
+    (
+        re.compile(r"^https?://(www\.|mobile\.)?(twitter|x)\.com/[^/]+/status/\d+", re.I),
+        ItemType.tweet,
+    ),
+    (
+        re.compile(r"^https?://(www\.|m\.|music\.)?youtube\.com/(watch|shorts/|live/)", re.I),
+        ItemType.video,
+    ),
     (re.compile(r"^https?://youtu\.be/", re.I), ItemType.video),
     (re.compile(r"^https?://(www\.)?vimeo\.com/\d+", re.I), ItemType.video),
-    (re.compile(r"^https?://(www\.)?coolors\.co/(palette/)?[0-9a-f]{6}(-[0-9a-f]{6})+", re.I), ItemType.palette),
+    (
+        re.compile(r"^https?://(www\.)?coolors\.co/(palette/)?[0-9a-f]{6}(-[0-9a-f]{6})+", re.I),
+        ItemType.palette,
+    ),
     (re.compile(r"\.pdf(\?.*)?$", re.I), ItemType.pdf),
     (re.compile(r"^https?://arxiv\.org/pdf/", re.I), ItemType.pdf),
     (re.compile(r"\.(png|jpe?g|gif|webp|avif|bmp|tiff?)(\?.*)?$", re.I), ItemType.image),
