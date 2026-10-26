@@ -24,6 +24,7 @@ from smriti.config import get_settings
 from smriti.db import get_sessionmaker
 from smriti.ml.hashing import hash_embed
 from smriti.models import AppSetting, ModelCache
+from smriti.telemetry import span
 
 log = logging.getLogger(__name__)
 
@@ -132,7 +133,8 @@ async def complete_json[M: BaseModel](
         )
 
     started = time.perf_counter()
-    raw, tokens = await _chat(choice, system, prompt, schema.model_json_schema())
+    with span("model.chat", step=step, model=choice.label):
+        raw, tokens = await _chat(choice, system, prompt, schema.model_json_schema())
     ms = int((time.perf_counter() - started) * 1000)
     try:
         output = schema.model_validate_json(_strip_fences(raw))
@@ -308,7 +310,8 @@ async def _embed_cached(
     fresh: dict[str, Any] = {}
     for start in range(0, len(missing), batch):
         idx = missing[start : start + batch]
-        vectors, used = await _embed_uncached(choice, [texts[i] for i in idx], dim)
+        with span("model.embed", model=choice.label, batch=len(idx)):
+            vectors, used = await _embed_uncached(choice, [texts[i] for i in idx], dim)
         tokens += used
         for i, v in zip(idx, vectors, strict=True):
             fresh[keys[i]] = v
