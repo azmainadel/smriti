@@ -65,9 +65,6 @@
   [data-theme="dark"] {
     color-scheme: dark;
   }
-  body {
-    background: var(--color-canvas);
-  }
   /* Paper grain: a fixed, faint noise layer under everything. */
   body::before {
     content: "";

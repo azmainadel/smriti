@@ -25,8 +25,8 @@ export const useShell = () => useContext(ShellContext);
 
 const NAV = [
   { href: "/", label: "Everything" },
-  { href: "/serendipity", label: "Serendipity" },
-  { href: "/digest", label: "From your past" },
+  { href: "/wander", label: "Wander" },
+  { href: "/digest", label: "Look back" },
 ];
 
 function Overlay({ sequence }: { sequence: React.RefObject<string[]> }) {
@@ -132,9 +132,11 @@ export function Shell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3 sm:h-16 sm:flex-nowrap sm:px-8 sm:pt-0">
-        <Link href="/" className="flex items-center gap-1.5" aria-label="Smriti, everything">
-          <span className="font-display text-[26px] italic leading-none tracking-tight">smriti</span>
-          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-accent" />
+        <Link href="/" className="group flex items-baseline gap-2" aria-label="Smriti, everything">
+          <span className="font-display text-[25px] font-medium leading-none tracking-[-0.02em]">smriti</span>
+          <span lang="bn" className="text-[13px] leading-none text-accent transition-opacity group-hover:opacity-100 sm:opacity-70">
+            স্মৃতি
+          </span>
         </Link>
         <nav className="no-scrollbar order-last -mx-1 flex w-full gap-1 overflow-x-auto sm:order-none sm:mx-auto sm:w-auto" aria-label="Views">
           {NAV.map((n) => {
