@@ -54,7 +54,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
-ignore = ["E501"]  # the formatter owns line length; long SQL and HTML strings stay whole
+ignore = ["E501", "SIM905"]  # formatter owns line length; word lists read best as split strings
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

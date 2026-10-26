@@ -17,7 +17,7 @@ STOPWORDS = frozenset(
     would you your yours yourself yourselves within without also however still even really
     thing things way ways lot lots year years time times people one's first last next back
     well good great see seen show shows read
-    """.split()  # noqa: SIM905
+    """.split()
 )
 _WORD = re.compile(r"[A-Za-z][A-Za-z0-9+#.-]*[A-Za-z0-9+#]|[A-Za-z]")
 _SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-Z\"“(])")
@@ -98,7 +98,7 @@ def normalize_tag(tag: str) -> str:
 # Acronyms that show up in references and markup, not in what a page is about.
 _JUNK_NAMES = frozenset(
     "ISBN ISSN DOI PDF HTML URL HTTP HTTPS API FAQ RSS CSS JSON XML USD EUR GMT UTC AM PM TV OK "
-    "ID UK US USA EU CEO".split()  # noqa: SIM905
+    "ID UK US USA EU CEO".split()
 )
 
 
