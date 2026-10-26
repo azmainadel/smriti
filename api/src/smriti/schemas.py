@@ -57,6 +57,8 @@ class ItemOut(BaseModel):
     last_opened_at: datetime | None
     open_count: int
     lead_image: str | None
+    # A card-sized copy of the lead image; falls back to the full one for older items.
+    lead_thumb: str | None
     lead_aspect: float | None
     palette: list[dict[str, Any]] | None
     tags: list[str]
@@ -107,6 +109,7 @@ def item_out(item: Item) -> ItemOut:
         last_opened_at=item.last_opened_at,
         open_count=item.open_count,
         lead_image=signed_url(item.lead_image_key),
+        lead_thumb=signed_url(item.meta.get("card_key") or item.lead_image_key),
         lead_aspect=item.meta.get("lead_aspect"),
         palette=item.palette,
         tags=sorted(t.name for t in item.tags),

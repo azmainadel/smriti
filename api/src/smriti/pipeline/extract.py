@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 MAX_TEXT = 2_000_000
 MAX_IMAGES = 8
 MIN_IMAGE_SIDE = 80
+CARD_SIZE = 720
 
 
 async def run_extractor(ctx: StepContext) -> Extraction:
@@ -136,3 +137,6 @@ async def extract(ctx: StepContext) -> None:
         if i == 0:
             item.lead_image_key = key
             item.meta["lead_aspect"] = round(decoded.width / max(decoded.height, 1), 3)
+            # Grid cards are ~300 px wide; a 720 px copy covers 2x screens at a fraction of the bytes.
+            card = await asyncio.to_thread(thumbnail, img.data, CARD_SIZE)
+            item.meta["card_key"] = await ctx.put("assets/0.card.webp", card, "image/webp")

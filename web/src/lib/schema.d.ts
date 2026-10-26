@@ -608,6 +608,8 @@ export interface components {
             open_count: number;
             /** Lead Image */
             lead_image: string | null;
+            /** Lead Thumb */
+            lead_thumb: string | null;
             /** Lead Aspect */
             lead_aspect: number | null;
             /** Palette */
@@ -686,6 +688,8 @@ export interface components {
             open_count: number;
             /** Lead Image */
             lead_image: string | null;
+            /** Lead Thumb */
+            lead_thumb: string | null;
             /** Lead Aspect */
             lead_aspect: number | null;
             /** Palette */

@@ -185,6 +185,7 @@ async def test_image_upload_ocr_colors(client: AsyncClient) -> None:
     d = (await client.get(f"/items/{item['id']}")).json()
     assert d["status"] == "ready"
     assert d["palette"] and d["lead_image"]
+    assert "0.card.webp" in d["lead_thumb"]
     assert any("RETENTION" in (a["ocr_text"] or "") for a in d["assets"])
     hits = (await client.get("/search", params={"q": "blue retention chart"})).json()["hits"]
     assert hits and hits[0]["item"]["id"] == item["id"]

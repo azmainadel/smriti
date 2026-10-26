@@ -1733,6 +1733,17 @@
             ],
             "title": "Lead Image"
           },
+          "lead_thumb": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Thumb"
+          },
           "lead_aspect": {
             "anyOf": [
               {
@@ -1912,6 +1923,7 @@
           "last_opened_at",
           "open_count",
           "lead_image",
+          "lead_thumb",
           "lead_aspect",
           "palette",
           "tags",
@@ -2046,6 +2058,17 @@
             ],
             "title": "Lead Image"
           },
+          "lead_thumb": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Thumb"
+          },
           "lead_aspect": {
             "anyOf": [
               {
@@ -2123,6 +2146,7 @@
           "last_opened_at",
           "open_count",
           "lead_image",
+          "lead_thumb",
           "lead_aspect",
           "palette",
           "tags",
