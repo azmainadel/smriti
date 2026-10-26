@@ -46,7 +46,8 @@ async def archive_html(page: str, base_url: str) -> str:
     ) as client:
         sheets = tree.xpath("//link[@rel='stylesheet'][@href]")[:15]
         css = await asyncio.gather(
-            *(client.get(urljoin(base_url, s.get("href"))) for s in sheets), return_exceptions=True
+            *(client.get(urljoin(base_url, sheet.get("href"))) for sheet in sheets),
+            return_exceptions=True,
         )
         for link, resp in zip(sheets, css, strict=True):
             if isinstance(resp, httpx.Response) and resp.status_code == 200:
