@@ -125,8 +125,8 @@ function Tile({ item }: { item: Item }) {
 
     case "note":
       return (
-        <div className="px-5 py-5">
-          <p className="line-clamp-[10] whitespace-pre-line text-[15px] leading-[1.55] text-ink">{item.summary ?? item.title}</p>
+        <div className="ruled px-5 pb-[18px] pt-[14px]">
+          <p className="line-clamp-[10] whitespace-pre-line font-serif text-[16px] leading-[26px] text-ink">{item.summary ?? item.title}</p>
         </div>
       );
 
