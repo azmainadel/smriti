@@ -5,6 +5,7 @@ import csv
 import io
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Any
 
 from lxml import html as lxml_html
 from sqlalchemy import select
@@ -46,6 +47,16 @@ def _tags(value: str | None, sep: str = ",") -> list[str]:
     return [t.strip() for t in (value or "").replace("|", sep).split(sep) if t.strip()]
 
 
+def _folder_name(dl: Any) -> str | None:
+    """Folders are an H3 just before their DL; parsers put it bare or wrapped in a DT."""
+    prev = dl.getprevious()
+    if prev is not None and prev.tag == "dt":
+        prev = prev.find("h3")
+    if prev is None or prev.tag != "h3":
+        return None
+    return prev.text_content().strip() or None
+
+
 def parse_netscape(doc: str) -> list[Bookmark]:
     tree = lxml_html.fromstring(doc)
     out = []
@@ -53,13 +64,7 @@ def parse_netscape(doc: str) -> list[Bookmark]:
         href = a.get("href") or ""
         if not href.startswith(("http://", "https://")):
             continue
-        # Folder names become tags: the DT/DL nesting holds the H3 headings.
-        folders = [
-            h3.text_content().strip()
-            for dl in a.iterancestors("dl")
-            for h3 in [dl.getprevious()]
-            if h3 is not None and h3.tag == "h3" and h3.text_content().strip()
-        ]
+        folders = [name for dl in a.iterancestors("dl") if (name := _folder_name(dl))]
         dd = a.getparent().getnext() if a.getparent() is not None else None
         note = dd.text_content().strip() if dd is not None and dd.tag == "dd" else None
         out.append(

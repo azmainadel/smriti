@@ -52,7 +52,7 @@ def extractive_summary(text: str, description: str | None = None) -> tuple[str, 
     summary = description.strip() if description and len(description) > 40 else sents[0]
     ranked = sorted((s for s in sents if s != summary), key=score, reverse=True)[:3]
     # Key points read best in document order.
-    points = [s for s in sents if s in ranked]
+    points = [s for s in dict.fromkeys(sents) if s in ranked][:3]
     return summary[:400], points
 
 

@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, func, select, text
 
 from smriti.db import get_sessionmaker
@@ -52,7 +52,12 @@ def llm_input(item: Item) -> str:
 
 class SummaryOut(BaseModel):
     summary: str = Field(description="One plain sentence saying what this is about.")
-    key_points: list[str] = Field(max_length=3, description="Up to 3 short key points.")
+    key_points: list[str] = Field(description="Up to 3 short key points.")
+
+    @field_validator("key_points")
+    @classmethod
+    def _at_most_three(cls, v: list[str]) -> list[str]:
+        return v[:3]  # small models overshoot; trim rather than fail
 
 
 async def summarize(ctx: StepContext) -> None:
@@ -94,7 +99,12 @@ async def summarize(ctx: StepContext) -> None:
 
 
 class TagsOut(BaseModel):
-    tags: list[str] = Field(min_length=1, max_length=8, description="3 to 8 lowercase topic tags.")
+    tags: list[str] = Field(description="3 to 8 lowercase topic tags.")
+
+    @field_validator("tags")
+    @classmethod
+    def _at_most_eight(cls, v: list[str]) -> list[str]:
+        return v[:8]
 
 
 async def snap_tags(ctx: StepContext, proposed: list[str]) -> list[Tag]:
@@ -172,7 +182,12 @@ class EntityOut(BaseModel):
 
 
 class EntitiesOut(BaseModel):
-    entities: list[EntityOut] = Field(max_length=20)
+    entities: list[EntityOut]
+
+    @field_validator("entities")
+    @classmethod
+    def _at_most_twenty(cls, v: list[EntityOut]) -> list[EntityOut]:
+        return v[:20]
 
 
 async def extract_entities(ctx: StepContext) -> None:
