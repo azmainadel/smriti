@@ -12,7 +12,7 @@ The extension sends the page's rendered HTML, so paywalled and logged-in pages a
 
 1. In Smriti, open Settings → Devices and create a token named after this browser.
 2. Chrome: `chrome://extensions` → Developer mode → Load unpacked → pick this folder.
-   Firefox: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `manifest.json`.
+   Firefox 128+: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `manifest.json`.
 3. In the extension options, paste the API URL and the token. It asks for permission to reach that one server.
 
 To package: `zip -r smriti-extension.zip . -x README.md`.
