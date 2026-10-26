@@ -1,0 +1,62 @@
+[project]
+name = "smriti"
+version = "0.1.0"
+description = "Self-hosted personal memory: save anything, find it by meaning."
+authors = [{ name = "Azmain Adel", email = "azmainadel47@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "pgvector>=0.3.6",
+    "httpx>=0.28",
+    "python-multipart>=0.0.17",
+    "boto3>=1.35",
+    "trafilatura>=2.0",
+    "lxml>=5.3",
+    "pillow>=11.0",
+    "numpy>=2.1",
+    "pypdf>=5.1",
+    "pypdfium2>=4.30",
+    "fastembed>=0.4",
+    "youtube-transcript-api>=1.0",
+    "typer>=0.15",
+    "sse-starlette>=2.1",
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.49"]
+ocr = ["pytesseract>=0.3.13"]
+audio = ["faster-whisper>=1.1"]
+otel = [
+    "opentelemetry-sdk>=1.29",
+    "opentelemetry-exporter-otlp>=1.29",
+    "opentelemetry-instrumentation-fastapi>=0.50b0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.8"]
+
+[project.scripts]
+smriti = "smriti.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.5,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
