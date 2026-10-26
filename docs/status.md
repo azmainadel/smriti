@@ -12,7 +12,7 @@ What is built, what is partial and what is missing, as of October 2026. "Verifie
 | 4 | Hybrid search: parsing, four retrievers, fusion, eval in CI | Done. Seed eval set has 70 queries, not 200 real ones. p95 85 ms at 50k synthetic items |
 | 5 | Rich types: transcripts, PDFs, tweet threads | Partial. Extractors exist and work on real samples; there are no 20-sample test sets per type |
 | 6 | Resurfacing: scoring, home strip, rail, digest, reasons | Done in code. The 25% open-rate exit needs four weeks of use |
-| 7 | Release: docs, demo video, one-command install, benchmarks | Docs and compose file done. No demo video. Docker images not built in this environment |
+| 7 | Release: docs, demo video, one-command install, benchmarks | Docs done; `docker compose up` verified end to end (save, extract, search, file serving). No demo video yet |
 
 ## Gaps worth knowing
 
@@ -24,6 +24,7 @@ What is built, what is partial and what is missing, as of October 2026. "Verifie
 - **Whisper.** Optional extra; YouTube uses captions and falls back to no transcript, not to Whisper, because downloading YouTube audio needs yt-dlp.
 - **Image captions.** Only with a vision model configured (`SMRITI_CAPTION_MODEL`). Without one, images get OCR, colors and CLIP vectors but no alt text.
 - **Cross-encoder re-rank.** Behind a flag and untested against the eval set.
+- **Object storage.** Files go to a Docker volume by default because MinIO no longer publishes images; the S3 backend works with any S3-compatible service.
 - **Multi-user.** Not built. The open question in the spec stands: adding `owner_id` now is cheap, later it is a migration of every table.
 - **Railway or Fly template.** Not built.
 
