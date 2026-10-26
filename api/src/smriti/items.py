@@ -4,18 +4,19 @@ import mimetypes
 import uuid
 from datetime import datetime
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from smriti.ml.heuristics import normalize_tag
-from smriti.models import Item, ItemContent, ItemStatus, ItemTag, ItemType, Tag
+from smriti.models import Item, ItemContent, ItemStatus, ItemTag, ItemType
 from smriti.notify import publish
 from smriti.pipeline import workflow
 from smriti.pipeline.classify import type_from_mime, type_from_text, type_from_url
 from smriti.schemas import ItemCreate
 from smriti.storage import get_storage, item_prefix
 from smriti.urls import canonicalize, domain_of
+from smriti.vocab import upsert_tag
 
 
 def _new_item(url: str | None, capture: str, saved_at: datetime | None) -> Item:
@@ -119,14 +120,10 @@ async def get(session: AsyncSession, item_id: uuid.UUID) -> Item | None:
 
 async def set_user_tags(session: AsyncSession, item: Item, names: list[str]) -> None:
     """User-edited tags replace all tags on the item and are kept across re-enrichment."""
-    clean = list(dict.fromkeys(n for n in (normalize_tag(t) for t in names) if n))
+    clean = sorted(dict.fromkeys(n for n in (normalize_tag(t) for t in names) if n))
     await session.execute(delete(ItemTag).where(ItemTag.item_id == item.id))
     for name in clean:
-        tag = (await session.execute(select(Tag).where(Tag.name == name))).scalar_one_or_none()
-        if tag is None:
-            tag = Tag(name=name)
-            session.add(tag)
-            await session.flush()
+        tag = await upsert_tag(session, name)
         session.add(ItemTag(item_id=item.id, tag_id=tag.id, source="user"))
     await session.flush()
     await session.refresh(item, ["tags"])

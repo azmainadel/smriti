@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, select, text
 
 from smriti.db import get_sessionmaker
 from smriti.ml import adapter
@@ -17,10 +17,11 @@ from smriti.ml.colors import palette_from_hex
 from smriti.ml.heuristics import extractive_summary, keyword_tags, normalize_tag, proper_nouns
 from smriti.ml.imaging import analyze
 from smriti.ml.textsig import simhash
-from smriti.models import Chunk, Enrichment, Entity, Item, ItemEntity, ItemTag, ItemType, Tag
+from smriti.models import Chunk, Enrichment, Item, ItemEntity, ItemTag, ItemType, Tag
 from smriti.pipeline.chunking import chunk_html
 from smriti.pipeline.context import StepContext, Timer
 from smriti.pipeline.ocr import ocr_image
+from smriti.vocab import upsert_entity, upsert_tag
 
 log = logging.getLogger(__name__)
 LLM_INPUT_CHARS = 6000
@@ -109,13 +110,15 @@ class TagsOut(BaseModel):
 
 async def snap_tags(ctx: StepContext, proposed: list[str]) -> list[Tag]:
     """Map proposed tags onto existing ones by embedding similarity so the vocabulary stays small."""
-    names = list(dict.fromkeys(n for n in (normalize_tag(t) for t in proposed) if n))[:8]
+    names = sorted(dict.fromkeys(n for n in (normalize_tag(t) for t in proposed) if n))[:8]
     if not names:
         return []
     vectors = (await adapter.embed_texts(names)).output
     out: list[Tag] = []
     for name, vec in zip(names, vectors, strict=True):
         tag = (await ctx.session.execute(select(Tag).where(Tag.name == name))).scalar_one_or_none()
+        if tag is not None and tag.embedding is None:
+            tag.embedding = vec
         if tag is None:
             distance = Tag.embedding.cosine_distance(vec)
             nearest = (
@@ -129,9 +132,7 @@ async def snap_tags(ctx: StepContext, proposed: list[str]) -> list[Tag]:
             if nearest and 1 - nearest.d >= TAG_SNAP_SIMILARITY:
                 tag = nearest.Tag
             else:
-                tag = Tag(name=name, embedding=vec)
-                ctx.session.add(tag)
-                await ctx.session.flush()
+                tag = await upsert_tag(ctx.session, name, vec)
         if tag not in out:
             out.append(tag)
     return out
@@ -209,16 +210,8 @@ async def extract_entities(ctx: StepContext) -> None:
 
     await ctx.session.execute(delete(ItemEntity).where(ItemEntity.item_id == item.id))
     seen: set[int] = set()
-    for name, kind in found:
-        entity = (
-            await ctx.session.execute(
-                select(Entity).where(func.lower(Entity.name) == name.lower(), Entity.kind == kind)
-            )
-        ).scalar_one_or_none()
-        if entity is None:
-            entity = Entity(name=name[:200], kind=kind)
-            ctx.session.add(entity)
-            await ctx.session.flush()
+    for name, kind in sorted(found):
+        entity = await upsert_entity(ctx.session, name, kind)
         if entity.id not in seen:
             seen.add(entity.id)
             ctx.session.add(ItemEntity(item_id=item.id, entity_id=entity.id))
