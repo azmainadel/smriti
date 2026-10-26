@@ -102,11 +102,12 @@ async def extract(ctx: StepContext) -> None:
     if ex.canonical_url and domain_of(ex.canonical_url) == item.domain:
         item.canonical_url = canonicalize(ex.canonical_url)
     item.site_name = ex.site_name or item.site_name
-    item.meta = {**item.meta, **ex.meta}
-    if ex.description:
-        item.meta["description"] = ex.description[:1000]
-    if ex.palette:
-        item.meta["colors"] = ex.palette
+    item.meta = {
+        **item.meta,
+        **ex.meta,
+        **({"description": ex.description[:1000]} if ex.description else {}),
+        **({"colors": ex.palette} if ex.palette else {}),
+    }
 
     content = ctx.content()
     content.text = ex.text[:MAX_TEXT] if ex.text else content.text
@@ -136,7 +137,11 @@ async def extract(ctx: StepContext) -> None:
         )
         if i == 0:
             item.lead_image_key = key
-            item.meta["lead_aspect"] = round(decoded.width / max(decoded.height, 1), 3)
             # Grid cards are ~300 px wide; a 720 px copy covers 2x screens at a fraction of the bytes.
             card = await asyncio.to_thread(thumbnail, img.data, CARD_SIZE)
-            item.meta["card_key"] = await ctx.put("assets/0.card.webp", card, "image/webp")
+            # Reassign rather than mutate: SQLAlchemy does not track in-place JSONB edits.
+            item.meta = {
+                **item.meta,
+                "lead_aspect": round(decoded.width / max(decoded.height, 1), 3),
+                "card_key": await ctx.put("assets/0.card.webp", card, "image/webp"),
+            }
