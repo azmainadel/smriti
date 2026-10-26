@@ -35,7 +35,8 @@ export function useHotkeys(map: Record<string, (e: KeyboardEvent) => void>, enab
         }
         return;
       }
-      if (e.altKey || typing(e.target)) return;
+      // Dialogs own their keys (Escape closes them, it should not also navigate).
+      if (e.altKey || typing(e.target) || document.querySelector('[role="dialog"]')) return;
       const handler = ref.current[e.key];
       if (handler) {
         e.preventDefault();

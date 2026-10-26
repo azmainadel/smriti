@@ -501,12 +501,12 @@ export interface components {
              * Email
              * @default false
              */
-            email: boolean;
+            email?: boolean;
             /**
              * Web Url
              * @default http://localhost:3000
              */
-            web_url: string;
+            web_url?: string;
             /** Last Sent */
             last_sent?: string | null;
         };
@@ -732,7 +732,7 @@ export interface components {
              * Price Per 1K
              * @default 0
              */
-            price_per_1k: number;
+            price_per_1k?: number;
         };
         /** ReindexIn */
         ReindexIn: {
@@ -744,7 +744,7 @@ export interface components {
              * Force
              * @default false
              */
-            force: boolean;
+            force?: boolean;
         };
         /** ReindexOut */
         ReindexOut: {
@@ -868,37 +868,37 @@ export interface components {
              * Url
              * @default null
              */
-            url: string | null;
+            url?: string | null;
             /**
              * Text
              * @default null
              */
-            text: string | null;
+            text?: string | null;
             /**
              * Note
              * @default null
              */
-            note: string | null;
+            note?: string | null;
             /**
              * Title
              * @default null
              */
-            title: string | null;
+            title?: string | null;
             /**
              * Html
              * @default null
              */
-            html: string | null;
+            html?: string | null;
             /**
              * Selection
              * @default null
              */
-            selection: string | null;
+            selection?: string | null;
             /**
              * Image Url
              * @default null
              */
-            image_url: string | null;
+            image_url?: string | null;
             /** Tags */
             tags?: string[];
             /**
@@ -906,12 +906,12 @@ export interface components {
              * @default web
              * @enum {string}
              */
-            capture: "web" | "extension" | "selection" | "share" | "email" | "cli" | "import";
+            capture?: "web" | "extension" | "selection" | "share" | "email" | "cli" | "import";
             /**
              * Saved At
              * @default null
              */
-            saved_at: string | null;
+            saved_at?: string | null;
         };
     };
     responses: never;
