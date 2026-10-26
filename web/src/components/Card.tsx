@@ -110,7 +110,7 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
         <Lead item={item} />
       ) : (
         <div className="p-4">
-          <p className="font-serif text-lg font-semibold leading-snug line-clamp-2">{item.title ?? "Image"}</p>
+          <p className="font-serif text-base font-semibold leading-snug sm:text-lg line-clamp-2">{item.title ?? "Image"}</p>
           <p className="mt-1 truncate text-sm text-muted">{site || item.url}</p>
         </div>
       );
@@ -185,7 +185,7 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
             ) : null}
           </Lead>
           <div className="p-4">
-            <h3 className="font-serif text-lg font-semibold leading-snug line-clamp-3">{item.title}</h3>
+            <h3 className="font-serif text-base font-semibold leading-snug sm:text-lg line-clamp-3">{item.title}</h3>
             <p className="mt-1 text-sm text-muted">{meta.channel ?? site}</p>
             {caption}
           </div>
@@ -202,7 +202,7 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
             </div>
           ) : null}
           <div className="p-4">
-            <h3 className="font-serif text-lg font-semibold leading-snug line-clamp-3">{item.title}</h3>
+            <h3 className="font-serif text-base font-semibold leading-snug sm:text-lg line-clamp-3">{item.title}</h3>
             <p className="mt-1 text-sm text-muted">
               PDF{meta.pages ? ` · ${meta.pages} pages` : ""}
               {meta.author ? ` · ${meta.author}` : ""}
@@ -216,7 +216,7 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
         <div>
           <Lead item={item} />
           <div className="p-4">
-            <h3 className="font-serif text-lg font-semibold leading-snug line-clamp-2">{item.title}</h3>
+            <h3 className="font-serif text-base font-semibold leading-snug sm:text-lg line-clamp-2">{item.title}</h3>
             <p className="mt-1 flex items-center justify-between text-sm text-muted">
               <span>{site}</span>
               {meta.price ? <span className="font-medium text-ink">{price(meta.price, meta.currency)}</span> : null}
@@ -229,7 +229,7 @@ function Body({ item, highlight }: { item: Item; highlight?: string | null }) {
         <div>
           <Lead item={item} />
           <div className="p-4">
-            <h3 className="font-serif text-lg font-semibold leading-snug line-clamp-4">{item.title ?? item.url}</h3>
+            <h3 className="font-serif text-base font-semibold leading-snug sm:text-lg line-clamp-4">{item.title ?? item.url}</h3>
             <p className="mt-1 text-sm text-muted">{site}</p>
             {caption}
           </div>
