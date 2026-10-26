@@ -32,6 +32,31 @@ def _paragraphs(page_text: str) -> list[str]:
     return [re.sub(r" {2,}", " ", p) for p in paras if p]
 
 
+_BOILERPLATE = re.compile(
+    r"arxiv|licen[cs]e|permission|copyright|attribution|preprint|proceedings|conference|journal|"
+    r"doi|vol\.|issn|https?://|@|university|abstract|submitted|accepted",
+    re.I,
+)
+
+
+def guess_title(reader) -> str | None:  # noqa: ANN001
+    """Papers rarely set /Title. Take the first title-like line on page 1: a few words,
+    mostly capitalized, not a license or venue line."""
+    try:
+        lines = (reader.pages[0].extract_text() or "").splitlines()
+    except Exception:  # noqa: BLE001
+        return None
+    for line in lines[:40]:
+        line = re.sub(r"\s+", " ", line).strip()
+        words = line.split()
+        if not 2 <= len(words) <= 20 or _BOILERPLATE.search(line) or line.endswith("."):
+            continue
+        caps = sum(w[0].isupper() for w in words if w[0].isalpha())
+        if caps >= max(2, len(words) // 2):
+            return line
+    return None
+
+
 def parse_pdf(data: bytes) -> Extraction:
     import pypdfium2
     from pypdf import PdfReader
@@ -59,7 +84,7 @@ def parse_pdf(data: bytes) -> Extraction:
         html_parts += [f"<p>{htmllib.escape(p)}</p>" for p in paras]
         text_parts += paras
 
-    title = (info.get("/Title") or "").strip() or (text_parts[0][:140] if text_parts else None)
+    title = (info.get("/Title") or "").strip() or guess_title(reader)
     return Extraction(
         title=title,
         text="\n\n".join(text_parts),

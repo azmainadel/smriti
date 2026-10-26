@@ -404,7 +404,8 @@ async def related(session: AsyncSession, item_id: uuid.UUID, n: int = 5) -> list
         ),
         {"v": str(np.asarray(vec).tolist()), "id": item_id},
     )
-    sims = {r.item_id: float(r.sim) for r in rows}
+    floor = get_settings().related_min_similarity
+    sims = {r.item_id: float(r.sim) for r in rows if r.sim >= floor}
     if not sims:
         return []
     shared_rows = await session.execute(

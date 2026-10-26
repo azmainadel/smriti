@@ -252,7 +252,7 @@ async def test_resurface_and_related(client: AsyncClient) -> None:
 
     detail = (await client.get(f"/items/{old[0]['id']}")).json()
     related = [r["item"]["id"] for r in detail["related"]]
-    assert old[2]["id"] in related[:2] and related[-1] == old[1]["id"]  # sourdough is least related
+    assert old[2]["id"] in related[:2] and old[1]["id"] not in related  # sourdough is unrelated
 
     r = await client.post("/events", json={"item_id": home[0]["item"]["id"], "kind": "dismiss"})
     assert r.status_code == 204

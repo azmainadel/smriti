@@ -25,9 +25,23 @@ _PROPER = re.compile(r"\b([A-Z][a-z]+(?:\s+(?:of|de|van|von|the)?\s*[A-Z][a-z]+)
 
 
 def sentences(text: str) -> list[str]:
-    return [
-        s.strip() for s in _SENTENCE.split(re.sub(r"\s+", " ", text)) if 30 <= len(s.strip()) <= 400
-    ]
+    """Sentences within paragraphs, so a heading never fuses with the line after it."""
+    out: list[str] = []
+    for para in re.split(r"\n\s*\n", text):
+        para = re.sub(r"\s+", " ", para).strip()
+        if len(para.split()) < 6:  # headings, captions, list fragments
+            continue
+        out += [s.strip() for s in _SENTENCE.split(para) if _prose(s.strip())]
+    return out
+
+
+def _prose(s: str) -> bool:
+    """Reject citations, captions and data rows: real sentences start with a letter and
+    are mostly letters."""
+    if not 30 <= len(s) <= 400 or not s[0].isalpha():
+        return False
+    letters = sum(c.isalpha() or c.isspace() for c in s)
+    return letters / len(s) > 0.85
 
 
 def _freqs(text: str) -> Counter[str]:
@@ -69,11 +83,11 @@ def keyword_tags(title: str, text: str, limit: int = 6) -> list[str]:
     tags: list[str] = []
     for word, _ in ranked:
         tag = normalize_tag(word)
-        if tag and tag not in tags and not any(tag in t.split("-") for t in tags):
+        if tag and tag not in tags:
             tags.append(tag)
-        if len(tags) >= limit:
-            break
-    return tags
+    # A two-word tag makes its parts redundant: keep "japanese-carpentry", drop "carpentry".
+    parts = {p for t in tags if "-" in t for p in t.split("-")}
+    return [t for t in tags if t not in parts][:limit]
 
 
 def normalize_tag(tag: str) -> str:
@@ -81,8 +95,20 @@ def normalize_tag(tag: str) -> str:
     return tag[:40]
 
 
+# Acronyms that show up in references and markup, not in what a page is about.
+_JUNK_NAMES = frozenset(
+    "ISBN ISSN DOI PDF HTML URL HTTP HTTPS API FAQ RSS CSS JSON XML USD EUR GMT UTC AM PM TV OK "
+    "ID UK US USA EU CEO".split()  # noqa: SIM905
+)
+
+
 def proper_nouns(text: str, limit: int = 12) -> list[str]:
-    counts = Counter(
-        m.strip() for m in _PROPER.findall(text[:50_000]) if m.lower() not in STOPWORDS
-    )
-    return [name for name, c in counts.most_common(limit * 2) if c >= 2][:limit]
+    counts = Counter(m.strip() for m in _PROPER.findall(text[:50_000]))
+    names = []
+    for name, c in counts.most_common(limit * 3):
+        if name in _JUNK_NAMES or name.lower() in STOPWORDS:
+            continue
+        # Single acronyms are noisy; ask more of them than of multi-word names.
+        if c >= (3 if name.isupper() else 2):
+            names.append(name)
+    return names[:limit]

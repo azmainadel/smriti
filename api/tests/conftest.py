@@ -18,6 +18,8 @@ os.environ.update(
         "SMRITI_INBOUND_EMAIL_SECRET": "mailhook",
         "SMRITI_LOG_JSON": "false",
         "SMRITI_LOG_LEVEL": "WARNING",
+        # Hash embeddings score lower than real models; scale the related-items floor down.
+        "SMRITI_RELATED_MIN_SIMILARITY": "0.15",
     }
 )
 

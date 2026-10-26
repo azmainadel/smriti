@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     log_json: bool = True
 
     search_rerank_cross_encoder: bool = False
+    # Below this cosine similarity, "related" items are noise. Tuned for bge-small.
+    related_min_similarity: float = 0.55
     search_candidates: int = Field(default=200, ge=10, le=2000)
 
 
