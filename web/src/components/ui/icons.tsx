@@ -108,3 +108,14 @@ export const CheckIcon = (p: IconProps) => (
     <path d="m5 12 5 5L20 7" />
   </Icon>
 );
+export const ArchiveIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="4" width="18" height="5" rx="1" />
+    <path d="M5 9v10h14V9M10 13h4" />
+  </Icon>
+);
+export const DownloadIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />
+  </Icon>
+);

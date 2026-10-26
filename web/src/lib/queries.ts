@@ -46,7 +46,7 @@ export function useItem(id: string) {
   return useQuery({ queryKey: keys.item(id), queryFn: () => call(api.GET("/items/{item_id}", { params: { path: { item_id: id } } })) });
 }
 
-export function useResurface(surface: "home" | "digest" | "on-this-day") {
+export function useResurface(surface: "home" | "digest" | "on-this-day" | "serendipity") {
   return useQuery({
     queryKey: keys.resurface(surface),
     queryFn: () => call(api.GET("/resurface", { params: { query: { surface } } })),

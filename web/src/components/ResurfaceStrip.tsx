@@ -5,8 +5,8 @@ import type { Item } from "@/lib/api";
 import { keys, recordEvent, useResurface } from "@/lib/queries";
 import { Card } from "./Card";
 
-/** "From your past": three items re-scored on each visit, each with its reason. */
-export function ResurfaceStrip({ onDelete }: { onDelete: (item: Item) => void }) {
+/** Three things from the past, re-scored on each visit, each saying why it came back. */
+export function ResurfaceStrip({ onOpen, onDelete }: { onOpen: (item: Item) => void; onDelete: (item: Item) => void }) {
   const { data } = useResurface("home");
   const qc = useQueryClient();
   const items = data?.items ?? [];
@@ -18,15 +18,23 @@ export function ResurfaceStrip({ onDelete }: { onDelete: (item: Item) => void })
   };
 
   return (
-    <section aria-labelledby="past-heading" className="mb-10">
-      <h2 id="past-heading" className="mb-3 font-serif text-lg text-ink-soft">
+    <section aria-labelledby="past-heading" className="mb-14">
+      <h2 id="past-heading" className="label mb-4 text-hint">
         From your past
       </h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:max-w-[60%]">
         {items.map((p) => (
-          <div key={p.item.id} onClickCapture={() => recordEvent(p.item.id, "open", { from: "resurface", surface: "home" })}>
-            <Card item={p.item} reason={p.reason} onDismiss={dismiss} onDelete={onDelete} />
-          </div>
+          <Card
+            key={p.item.id}
+            item={p.item}
+            reason={p.reason}
+            onOpen={(item) => {
+              recordEvent(item.id, "open", { from: "resurface", surface: "home" });
+              onOpen(item);
+            }}
+            onDismiss={dismiss}
+            onDelete={onDelete}
+          />
         ))}
       </div>
     </section>

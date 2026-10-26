@@ -10,7 +10,7 @@ export function Tip({ label, children }: { label: string; children: ReactElement
       <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
       <Portal>
         <Tooltip.Positioner>
-          <Tooltip.Content className="z-50 rounded-md bg-ink px-2 py-1 text-xs text-paper shadow">{label}</Tooltip.Content>
+          <Tooltip.Content className="z-50 rounded-md bg-ink px-2 py-1 text-xs text-canvas shadow">{label}</Tooltip.Content>
         </Tooltip.Positioner>
       </Portal>
     </Tooltip.Root>

@@ -4,28 +4,43 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { Masonry } from "@/components/Masonry";
+import { NoteCard } from "@/components/NoteCard";
 import { ResurfaceStrip } from "@/components/ResurfaceStrip";
 import { SearchBar, removeChip } from "@/components/SearchBar";
 import { useShell } from "@/components/Shell";
 import { toaster } from "@/components/ui/toast";
 import type { Item } from "@/lib/api";
-import { useShortcutFocus } from "@/lib/useShortcutFocus";
-import { useDebounced } from "@/lib/useDebounced";
 import { useDeleteItem, useFeed, useRetry, useSearch } from "@/lib/queries";
+import { useHotkeys } from "@/lib/shortcuts";
+import { useDebounced } from "@/lib/useDebounced";
 
 function Home() {
   const params = useSearchParams();
   const router = useRouter();
   const [q, setQ] = useState(params.get("q") ?? "");
-  const debounced = useDebounced(q, 150);
+  const debounced = useDebounced(q, 160);
   const searchRef = useRef<HTMLInputElement>(null);
-  const { openComposer } = useShell();
-  useShortcutFocus(searchRef);
+  const { openComposer, openItem, setSequence } = useShell();
 
-  // Keep the query in the URL so back/forward and reloads keep the search.
+  useHotkeys({ "/": () => searchRef.current?.focus() });
   useEffect(() => {
-    const url = debounced ? `/?q=${encodeURIComponent(debounced)}` : "/";
-    router.replace(url, { scroll: false });
+    const focus = () => {
+      searchRef.current?.focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("smriti:focus-search", focus);
+    if (params.get("focus")) focus();
+    return () => window.removeEventListener("smriti:focus-search", focus);
+  }, [params]);
+
+  // The query lives in the URL so back/forward and reloads keep it; an open item stays open.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (debounced) p.set("q", debounced);
+    else p.delete("q");
+    p.delete("focus");
+    const qs = p.toString();
+    router.replace(qs ? `/?${qs}` : "/", { scroll: false });
   }, [debounced, router]);
 
   const feed = useFeed();
@@ -34,13 +49,11 @@ function Home() {
   const retry = useRetry();
 
   const onDelete = useCallback(
-    (item: Item) =>
-      del.mutate(item.id, {
-        onSuccess: () => toaster.create({ title: "Deleted", description: item.title ?? undefined, duration: 2500 }),
-      }),
+    (item: Item) => del.mutate(item.id, { onSuccess: () => toaster.create({ title: "Deleted", duration: 1800 }) }),
     [del],
   );
   const onRetry = useCallback((item: Item) => retry.mutate(item.id), [retry]);
+  const onOpen = useCallback((item: Item) => openItem(item.id), [openItem]);
   const loadMore = useCallback(() => {
     if (feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage();
   }, [feed]);
@@ -48,46 +61,55 @@ function Home() {
   const searching = debounced.trim().length > 0;
   const feedItems = useMemo(() => feed.data?.pages.flatMap((p) => p.items).map((item) => ({ item })) ?? [], [feed.data]);
   const hits = useMemo(() => search.data?.hits.map((h) => ({ item: h.item, highlight: h.highlight })) ?? [], [search.data]);
+  const entries = searching ? hits : feedItems;
+
+  useEffect(() => {
+    setSequence(entries.map((e) => e.item.id));
+  }, [entries, setSequence]);
 
   if (feed.isSuccess && !feedItems.length && !searching) return <EmptyState onCompose={openComposer} />;
 
+  const status = search.data
+    ? `${search.data.hits.length} ${search.data.hits.length === 1 ? "thing" : "things"} · ${search.data.took_ms} ms`
+    : undefined;
+
   return (
     <div>
-      <div className="mx-auto mb-8 max-w-2xl">
-        <SearchBar ref={searchRef} value={q} onChange={setQ} chips={searching ? search.data?.chips : []} tookMs={searching ? search.data?.took_ms : undefined} />
+      <div className="pb-10 pt-6 sm:pb-14 sm:pt-12">
+        <SearchBar ref={searchRef} value={q} onChange={setQ} chips={search.data?.chips} status={searching ? status : undefined} />
       </div>
 
       {searching ? (
         <>
           {search.data?.fallback && (
-            <div className="mx-auto mb-6 max-w-2xl rounded-xl bg-sunken px-4 py-3 text-sm text-ink-soft">
-              Nothing matched every filter. Here are the closest matches without them.
+            <p className="mb-8 font-display text-xl italic text-muted">
+              Nothing matched every filter, so here is what comes closest.{" "}
               {search.data.chips[0] && (
-                <button type="button" className="ml-2 font-medium text-accent hover:underline" onClick={() => setQ(removeChip(q, search.data.chips[0]!))}>
+                <button type="button" className="not-italic text-accent-ink underline decoration-accent underline-offset-4" onClick={() => setQ(removeChip(q, search.data.chips[0]!))}>
                   Drop “{search.data.chips[0].label}”
                 </button>
               )}
-            </div>
+            </p>
           )}
           {search.isSuccess && !hits.length ? (
-            <p className="py-20 text-center text-muted">No matches. Try fewer or different words.</p>
+            <p className="py-24 text-center font-display text-3xl italic text-hint">Nothing comes to mind.</p>
           ) : (
-            <Masonry entries={hits} onDelete={onDelete} onRetry={onRetry} />
+            <Masonry entries={hits} onOpen={onOpen} onDelete={onDelete} onRetry={onRetry} />
           )}
         </>
       ) : (
         <>
-          <ResurfaceStrip onDelete={onDelete} />
+          <ResurfaceStrip onOpen={onOpen} onDelete={onDelete} />
           {feed.isPending ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="shimmer h-56 rounded-[var(--radius-card)]" />
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-4 xl:grid-cols-6">
+              {Array.from({ length: 12 }, (_, i) => (
+                <div key={i} className="breathe rounded-[var(--radius-card)] bg-well" style={{ height: 140 + ((i * 53) % 160) }} />
               ))}
             </div>
           ) : (
-            <Masonry entries={feedItems} onDelete={onDelete} onRetry={onRetry} onEndReached={loadMore} />
+            <Masonry entries={feedItems} lead={<NoteCard />} onOpen={onOpen} onDelete={onDelete} onRetry={onRetry} onEndReached={loadMore} />
           )}
-          {feed.isFetchingNextPage && <p className="py-8 text-center text-sm text-muted">Loading…</p>}
+          {feed.isFetchingNextPage && <p className="breathe py-10 text-center text-[13px] text-hint">Remembering more…</p>}
         </>
       )}
     </div>

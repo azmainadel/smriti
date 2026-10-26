@@ -33,9 +33,9 @@ export function EmptyState({ onCompose }: { onCompose: () => void }) {
   };
 
   return (
-    <div className="mx-auto max-w-2xl py-16 text-center">
-      <h1 className="font-serif text-4xl">A quiet place for everything you save</h1>
-      <p className="mt-4 text-lg text-muted">
+    <div className="mx-auto max-w-2xl py-20 text-center">
+      <h1 className="font-display text-5xl leading-[1.05] sm:text-6xl">A quiet place for everything you save</h1>
+      <p className="mx-auto mt-5 max-w-md text-[15px] text-muted">
         Bring in what you already have. Smriti reads every page, so you can find it later by what it was about.
       </p>
       <div className="mt-10 grid gap-3 text-left sm:grid-cols-3">
@@ -50,9 +50,9 @@ export function EmptyState({ onCompose }: { onCompose: () => void }) {
                 input.current.click();
               }
             }}
-            className="rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-lift)]"
+            className="rounded-[var(--radius-card)] bg-card p-5 text-left shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-hover)]"
           >
-            <span className="block font-medium">{s.name}</span>
+            <span className="block font-display text-xl">{s.name}</span>
             <span className="mt-1 block text-sm text-muted">{s.hint}</span>
           </button>
         ))}

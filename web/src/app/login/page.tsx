@@ -37,7 +37,7 @@ function Login() {
         }}
         className="w-full max-w-sm"
       >
-        <h1 className="font-serif text-4xl font-semibold">স্মৃতি</h1>
+        <h1 className="flex items-center gap-2 font-display text-5xl italic">smriti<span className="mt-4 h-2 w-2 rounded-full bg-accent" /></h1>
         <p className="mt-2 text-muted">Enter the owner secret from your server&apos;s .env. This device gets its own token, revocable from Settings.</p>
         <label className="mt-8 block text-sm font-medium" htmlFor="secret">
           Owner secret
@@ -48,7 +48,7 @@ function Login() {
           autoFocus
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 outline-none focus:border-accent"
+          className="mt-1 w-full rounded-xl bg-card px-4 py-2.5 shadow-[var(--shadow-card)] outline-none focus:ring-2 focus:ring-accent"
         />
         <label className="mt-4 block text-sm font-medium" htmlFor="device">
           Device name
@@ -57,7 +57,7 @@ function Login() {
           id="device"
           value={device}
           onChange={(e) => setDevice(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 outline-none focus:border-accent"
+          className="mt-1 w-full rounded-xl bg-card px-4 py-2.5 shadow-[var(--shadow-card)] outline-none focus:ring-2 focus:ring-accent"
         />
         {error && <p className="mt-3 text-sm text-danger" role="alert">{error}</p>}
         <Button type="submit" variant="primary" className="mt-6 w-full py-2.5" disabled={!secret}>

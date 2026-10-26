@@ -46,7 +46,7 @@ export function Composer({ open, onOpenChange }: { open: boolean; onOpenChange: 
           onChange={(e) => setText(e.target.value)}
           rows={isUrl ? 1 : 6}
           placeholder="Paste a link, or write a note, a quote, a list of hex colors…"
-          className="w-full resize-none rounded-xl border border-line bg-paper p-3 font-serif text-lg outline-none focus:border-accent"
+          className="w-full resize-none rounded-xl bg-well p-4 font-display text-xl outline-none focus:ring-2 focus:ring-accent"
           aria-label="Link or note"
         />
         {isUrl && (
@@ -54,7 +54,7 @@ export function Composer({ open, onOpenChange }: { open: boolean; onOpenChange: 
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note (optional)"
-            className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-accent"
+            className="w-full rounded-xl border border-hairline bg-canvas px-3 py-2 text-sm outline-none focus:border-accent"
             aria-label="Note"
           />
         )}

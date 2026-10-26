@@ -50,10 +50,10 @@ function Share() {
 
   if (done) {
     return (
-      <div className="grid min-h-[60vh] place-items-center text-accent">
+      <div className="grid min-h-[60vh] place-items-center text-accent-ink">
         <div className="flex flex-col items-center gap-2">
           <CheckIcon size={36} />
-          <p className="font-serif text-2xl">Saved</p>
+          <p className="font-display text-4xl italic">Saved</p>
         </div>
       </div>
     );
@@ -67,10 +67,10 @@ function Share() {
         void submit();
       }}
     >
-      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
-        <p className="font-serif text-lg font-semibold">{title || url || files[0]?.name || "Shared text"}</p>
+      <div className="rounded-[var(--radius-card)] border border-hairline bg-card p-4">
+        <p className="font-display text-2xl">{title || url || files[0]?.name || "Shared text"}</p>
         {url && <p className="mt-1 truncate text-sm text-muted">{url}</p>}
-        {body && <p className="mt-2 line-clamp-4 text-sm text-ink-soft">{body}</p>}
+        {body && <p className="mt-2 line-clamp-4 text-sm text-ink-2">{body}</p>}
         {files.length > 0 && <p className="mt-2 text-sm text-muted">{files.length} file(s)</p>}
       </div>
       <textarea
@@ -80,7 +80,7 @@ function Share() {
         onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), void submit())}
         placeholder="Add a note (Enter to save)"
         rows={3}
-        className="w-full rounded-xl border border-line bg-surface p-3 outline-none focus:border-accent"
+        className="w-full rounded-xl border border-hairline bg-card p-3 outline-none focus:border-accent"
       />
       <Button type="submit" variant="primary" className="w-full py-2.5" disabled={!url && !text && !title && !files.length}>
         Save

@@ -10,9 +10,9 @@ export function ShortcutsHelp({ open, onOpenChange }: { open: boolean; onOpenCha
         {SHORTCUTS.map((s) => (
           <div key={s.keys} className="contents">
             <dt>
-              <kbd className="rounded border border-line bg-sunken px-1.5 py-0.5 font-mono text-xs">{s.keys}</kbd>
+              <kbd className="rounded border border-hairline bg-well px-1.5 py-0.5 font-mono text-xs">{s.keys}</kbd>
             </dt>
-            <dd className="text-ink-soft">{s.action}</dd>
+            <dd className="text-ink-2">{s.action}</dd>
           </div>
         ))}
       </dl>

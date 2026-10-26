@@ -1,93 +1,174 @@
 "use client";
 
+import { AnimatePresence } from "motion/react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, Suspense, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useSave } from "@/lib/queries";
 import { useHotkeys } from "@/lib/shortcuts";
 import { useTheme } from "@/lib/theme";
-import { CommandK } from "./CommandK";
 import { Composer } from "./Composer";
 import { DropZone } from "./DropZone";
+import { ItemView } from "./ItemView";
 import { ShortcutsHelp } from "./ShortcutsHelp";
-import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from "./ui/icons";
-import { Tip } from "./ui/tooltip";
+import { MoonIcon, PlusIcon, SettingsIcon, SunIcon } from "./ui/icons";
+import { toaster } from "./ui/toast";
 
-type ShellApi = { openSearch: () => void; openComposer: () => void };
-const ShellContext = createContext<ShellApi>({ openSearch: () => {}, openComposer: () => {} });
+type ShellApi = {
+  openItem: (id: string) => void;
+  openComposer: () => void;
+  /** Pages register the order of what they show, so ← → in the item view walk it. */
+  setSequence: (ids: string[]) => void;
+};
+const ShellContext = createContext<ShellApi>({ openItem: () => {}, openComposer: () => {}, setSequence: () => {} });
 export const useShell = () => useContext(ShellContext);
 
+const NAV = [
+  { href: "/", label: "Everything" },
+  { href: "/serendipity", label: "Serendipity" },
+  { href: "/digest", label: "From your past" },
+];
+
+function Overlay({ sequence }: { sequence: React.RefObject<string[]> }) {
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const id = params.get("item");
+
+  const withItem = useCallback(
+    (next: string | null) => {
+      const p = new URLSearchParams(params.toString());
+      if (next) p.set("item", next);
+      else p.delete("item");
+      const qs = p.toString();
+      return qs ? `${pathname}?${qs}` : pathname;
+    },
+    [params, pathname],
+  );
+
+  useEffect(() => {
+    document.body.style.overflow = id ? "hidden" : "";
+  }, [id]);
+
+  return (
+    <AnimatePresence>
+      {id && (
+        <ItemView
+          key="item"
+          id={id}
+          onClose={() => router.replace(withItem(null), { scroll: false })}
+          onOpenItem={(next) => router.replace(withItem(next), { scroll: false })}
+          onNavigate={(dir) => {
+            const ids = sequence.current ?? [];
+            const next = ids[ids.indexOf(id) + dir];
+            if (next) router.replace(withItem(next), { scroll: false });
+          }}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
+
 export function Shell({ children }: { children: ReactNode }) {
-  const [searchOpen, setSearchOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [theme, setTheme] = useTheme();
+  const [dark, setDark] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const sequence = useRef<string[]>([]);
+  const { mutateAsync: save } = useSave();
+
+  useEffect(() => {
+    setDark(document.documentElement.dataset.theme === "dark");
+  }, [theme]);
+
+  const openItem = useCallback(
+    (id: string) => {
+      const p = new URLSearchParams(window.location.search);
+      p.set("item", id);
+      router.push(`${pathname}?${p}`, { scroll: false });
+    },
+    [pathname, router],
+  );
 
   useHotkeys({
-    "mod+k": () => setSearchOpen(true),
+    "mod+k": () => (pathname === "/" ? window.dispatchEvent(new Event("smriti:focus-search")) : router.push("/?focus=1")),
     n: () => setComposerOpen(true),
     "?": () => setHelpOpen(true),
-    g: () => router.push("/"),
   });
 
-  const api = useMemo(() => ({ openSearch: () => setSearchOpen(true), openComposer: () => setComposerOpen(true) }), []);
-  // Read the applied theme after mount; the server cannot know the system preference.
-  const [dark, setDark] = useState(false);
-  useEffect(() => setDark(document.documentElement.dataset.theme === "dark"), [theme]);
+  // Paste anywhere (outside a text field) to save a link or a snippet.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || ["INPUT", "TEXTAREA"].includes(el.tagName))) return;
+      const file = e.clipboardData?.files[0];
+      const text = e.clipboardData?.getData("text/plain").trim();
+      if (!file && !text) return;
+      e.preventDefault();
+      const input = file ?? (/^https?:\/\/\S+$/.test(text!) ? { url: text!, capture: "web" as const } : { text: text!, capture: "web" as const });
+      save(input)
+        .then(() => toaster.create({ title: "Saved", duration: 1500 }))
+        .catch((err) => toaster.create({ title: "Couldn't save", description: String(err), type: "error" }));
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [save]);
+
+  const api = useMemo<ShellApi>(
+    () => ({ openItem, openComposer: () => setComposerOpen(true), setSequence: (ids) => {
+        sequence.current = ids;
+      },
+    }),
+    [openItem],
+  );
+
+  const iconBtn = "grid h-9 w-9 place-items-center rounded-full text-hint transition-colors hover:bg-card hover:text-ink";
 
   return (
     <ShellContext.Provider value={api}>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-card focus:px-4 focus:py-2">
         Skip to content
       </a>
-      <header className="sticky top-0 z-30 border-b border-transparent bg-paper/85 backdrop-blur supports-[backdrop-filter]:bg-paper/70">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
-          <Link href="/" className="mr-auto flex items-baseline gap-2" aria-label="Smriti home">
-            <span className="font-serif text-xl font-semibold">স্মৃতি</span>
-            <span className="text-sm text-muted">smriti</span>
-          </Link>
-          <nav className="flex items-center gap-1 text-sm">
-            <Link href="/digest" className={`hidden rounded-lg px-3 py-1.5 sm:block ${pathname === "/digest" ? "bg-sunken" : "text-muted hover:text-ink"}`}>
-              Digest
-            </Link>
-            <Tip label="Search (⌘K)">
-              <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="hidden rounded-lg p-2 text-muted hover:bg-sunken hover:text-ink sm:block">
-                <SearchIcon />
-              </button>
-            </Tip>
-            <Tip label="Save something (N)">
-              <button type="button" aria-label="Save something" onClick={() => setComposerOpen(true)} className="rounded-lg p-2 text-muted hover:bg-sunken hover:text-ink">
-                <PlusIcon />
-              </button>
-            </Tip>
-            <Tip label={dark ? "Light theme" : "Dark theme"}>
-              <button type="button" aria-label="Toggle theme" onClick={() => setTheme(dark ? "light" : "dark")} className="rounded-lg p-2 text-muted hover:bg-sunken hover:text-ink">
-                {dark ? <SunIcon /> : <MoonIcon />}
-              </button>
-            </Tip>
-            <Tip label="Settings">
-              <Link href="/settings" aria-label="Settings" className="rounded-lg p-2 text-muted hover:bg-sunken hover:text-ink">
-                <SettingsIcon />
+      <header className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3 sm:h-16 sm:flex-nowrap sm:px-8 sm:pt-0">
+        <Link href="/" className="flex items-center gap-1.5" aria-label="Smriti, everything">
+          <span className="font-display text-[26px] italic leading-none tracking-tight">smriti</span>
+          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-accent" />
+        </Link>
+        <nav className="no-scrollbar order-last -mx-1 flex w-full gap-1 overflow-x-auto sm:order-none sm:mx-auto sm:w-auto" aria-label="Views">
+          {NAV.map((n) => {
+            const active = pathname === n.href;
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                aria-current={active ? "page" : undefined}
+                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] transition-colors ${active ? "bg-card font-medium text-ink shadow-[var(--shadow-card)]" : "text-muted hover:text-ink"}`}
+              >
+                {n.label}
               </Link>
-            </Tip>
-          </nav>
+            );
+          })}
+        </nav>
+        <div className="ml-auto flex items-center sm:ml-0">
+          <button type="button" aria-label="Save a link or note (N)" title="Save a link or note (N)" onClick={() => setComposerOpen(true)} className={iconBtn}>
+            <PlusIcon size={17} />
+          </button>
+          <button type="button" aria-label="Toggle theme" title="Toggle theme" onClick={() => setTheme(dark ? "light" : "dark")} className={iconBtn}>
+            {dark ? <SunIcon size={17} /> : <MoonIcon size={17} />}
+          </button>
+          <Link href="/settings" aria-label="Settings" title="Settings" className={iconBtn}>
+            <SettingsIcon size={17} />
+          </Link>
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-[1600px] px-3 pb-28 pt-4 sm:px-6 sm:pb-16">
+      <main id="main" className="mx-auto max-w-[1680px] px-4 pb-24 sm:px-8">
         {children}
       </main>
-      {/* Mobile: search within thumb reach. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 p-3 backdrop-blur sm:hidden">
-        <button
-          type="button"
-          onClick={() => setSearchOpen(true)}
-          className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left text-muted"
-        >
-          <SearchIcon /> Search your library
-        </button>
-      </div>
-      <CommandK open={searchOpen} onOpenChange={setSearchOpen} />
+      <Suspense>
+        <Overlay sequence={sequence} />
+      </Suspense>
       <Composer open={composerOpen} onOpenChange={setComposerOpen} />
       <ShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
       <DropZone />

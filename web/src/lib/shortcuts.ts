@@ -35,8 +35,8 @@ export function useHotkeys(map: Record<string, (e: KeyboardEvent) => void>, enab
         }
         return;
       }
-      // Dialogs own their keys (Escape closes them, it should not also navigate).
-      if (e.altKey || typing(e.target) || document.querySelector('[role="dialog"]')) return;
+      // Ark dialogs and open menus own their keys (Escape closes them, it should not also navigate).
+      if (e.altKey || typing(e.target) || document.querySelector('[data-scope="dialog"][role="dialog"], [data-scope="menu"][data-state="open"]')) return;
       const handler = ref.current[e.key];
       if (handler) {
         e.preventDefault();

@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import { Geist, Instrument_Serif, Newsreader } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/Providers";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
+const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
+// Display serif for the search field, quotes and big moments; Newsreader for long reading.
+const display = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument", display: "swap" });
 const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Smriti", template: "%s · Smriti" },
@@ -18,8 +20,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf8f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#15130f" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f2ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#111110" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -27,11 +29,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-dvh bg-paper">
+      <body className="min-h-dvh">
         <Providers>{children}</Providers>
       </body>
     </html>

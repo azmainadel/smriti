@@ -1,125 +1,153 @@
 @import "tailwindcss";
 
-/* Dark mode follows the system unless the user picks one; the choice sets data-theme on <html>. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* A quiet, warm library. The only strong color comes from saved content. */
+/*
+ * One calm canvas. No borders, no chrome: content carries the color, the interface stays
+ * in warm greys, and a single orange marks what is yours (labels, focus, the caret).
+ */
 @theme {
-  --color-paper: #faf8f4;
-  --color-surface: #ffffff;
-  --color-sunken: #f2eee7;
-  --color-ink: #1d1a16;
-  --color-ink-soft: #4a443c;
-  --color-muted: #6f675c;
-  --color-faint: #a59c8f;
-  --color-line: #e6e0d6;
-  --color-accent: #8a5a2b;
-  --color-accent-soft: #f3e7d8;
-  --color-mark: #f6e3a8;
-  --color-danger: #a23b2a;
+  --color-canvas: #f3f2ee;
+  --color-card: #ffffff;
+  --color-well: #ebe9e3;
+  --color-ink: #191817;
+  --color-ink-2: #45423d;
+  --color-muted: #6b675f;
+  --color-hint: #8f8a80;
+  --color-hairline: rgb(25 24 23 / 0.07);
+  --color-accent: #ff5a1f;
+  --color-accent-ink: #c2410c;
+  --color-accent-wash: #fff0e8;
+  --color-mark: #ffe3c2;
+  --color-danger: #c43d2b;
 
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-card: 14px;
-  --shadow-card: 0 1px 2px rgb(29 26 22 / 0.05), 0 2px 8px rgb(29 26 22 / 0.04);
-  --shadow-lift: 0 2px 4px rgb(29 26 22 / 0.06), 0 12px 32px rgb(29 26 22 / 0.1);
+  --radius-card: 12px;
+  --shadow-card: 0 1px 1px rgb(25 24 23 / 0.03), 0 2px 6px rgb(25 24 23 / 0.04);
+  --shadow-hover: 0 2px 4px rgb(25 24 23 / 0.04), 0 14px 34px rgb(25 24 23 / 0.1);
+  --shadow-panel: 0 30px 80px rgb(25 24 23 / 0.18);
 
-  --animate-shimmer: shimmer 1.6s linear infinite;
-  @keyframes shimmer {
-    from { background-position: -200% 0; }
-    to { background-position: 200% 0; }
-  }
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
   [data-theme="dark"] {
-    --color-paper: #15130f;
-    --color-surface: #1d1a16;
-    --color-sunken: #24211c;
-    --color-ink: #efe9df;
-    --color-ink-soft: #d3cbbf;
-    --color-muted: #a39a8c;
-    --color-faint: #756d61;
-    --color-line: #332f28;
-    --color-accent: #d9a46c;
-    --color-accent-soft: #3a2c1d;
-    --color-mark: #5b4a1c;
-    --color-danger: #e0806e;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
-    --shadow-lift: 0 12px 32px rgb(0 0 0 / 0.45);
+    --color-canvas: #111110;
+    --color-card: #1b1a19;
+    --color-well: #242321;
+    --color-ink: #f1efea;
+    --color-ink-2: #cfccc4;
+    --color-muted: #a29d93;
+    --color-hint: #7c776e;
+    --color-hairline: rgb(255 255 255 / 0.07);
+    --color-accent: #ff7a45;
+    --color-accent-ink: #ff9a6e;
+    --color-accent-wash: #2c1b12;
+    --color-mark: #5a3517;
+    --color-danger: #ef7d6a;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-hover: 0 14px 34px rgb(0 0 0 / 0.55);
+    --shadow-panel: 0 30px 80px rgb(0 0 0 / 0.6);
   }
 
   html {
-    background: var(--color-paper);
+    background: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     color-scheme: light;
   }
   [data-theme="dark"] {
     color-scheme: dark;
+  }
+  body {
+    background: var(--color-canvas);
   }
   ::selection {
     background: var(--color-mark);
   }
   :focus-visible {
     outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    outline-offset: 3px;
+  }
+  input,
+  textarea {
+    caret-color: var(--color-accent);
   }
   input[type="search"]::-webkit-search-cancel-button {
-    display: none; /* the search bar has its own clear button */
+    display: none;
   }
   mark {
     background: var(--color-mark);
     color: inherit;
-    border-radius: 2px;
-    padding: 0 1px;
+    border-radius: 3px;
+    padding: 0 2px;
   }
 }
 
-/* Reader view typography for extracted content. */
+@utility label {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* The reader: one serif, a calm measure. */
 .prose-reader {
   font-family: var(--font-serif);
   font-size: 1.1875rem;
-  line-height: 1.7;
+  line-height: 1.72;
   color: var(--color-ink);
-  max-width: 68ch;
+  max-width: 64ch;
 }
-.prose-reader > * + * { margin-top: 1.1em; }
+.prose-reader > * + * { margin-top: 1.05em; }
 .prose-reader h1, .prose-reader h2, .prose-reader h3, .prose-reader h4 {
+  font-family: var(--font-sans);
   font-weight: 600;
-  line-height: 1.25;
-  margin-top: 1.8em;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin-top: 2em;
 }
-.prose-reader h1 { font-size: 1.6em; }
-.prose-reader h2 { font-size: 1.3em; }
-.prose-reader h3 { font-size: 1.12em; }
-.prose-reader a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose-reader h1 { font-size: 1.35em; }
+.prose-reader h2 { font-size: 1.15em; }
+.prose-reader h3 { font-size: 1em; }
+.prose-reader a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-accent); text-underline-offset: 3px; }
 .prose-reader img { border-radius: 10px; margin-inline: auto; max-height: 70vh; }
-.prose-reader figure figcaption, .prose-reader .caption {
-  font-family: var(--font-sans); font-size: 0.85rem; color: var(--color-muted); text-align: center; margin-top: 0.5em;
+.prose-reader figcaption {
+  font-family: var(--font-sans); font-size: 0.8rem; color: var(--color-muted); text-align: center; margin-top: 0.6em;
 }
 .prose-reader blockquote {
-  border-left: 3px solid var(--color-line); padding-left: 1em; color: var(--color-ink-soft); font-style: italic;
+  font-family: var(--font-display); font-size: 1.35em; line-height: 1.35; color: var(--color-ink-2);
+  padding-left: 1em; border-left: 2px solid var(--color-accent);
 }
-.prose-reader ul { list-style: disc; padding-left: 1.4em; }
-.prose-reader ol { list-style: decimal; padding-left: 1.4em; }
+.prose-reader ul { list-style: disc; padding-left: 1.3em; }
+.prose-reader ol { list-style: decimal; padding-left: 1.3em; }
+.prose-reader li + li { margin-top: 0.3em; }
 .prose-reader pre, .prose-reader code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em;
-  background: var(--color-sunken); border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82em;
+  background: var(--color-well); border-radius: 6px;
 }
-.prose-reader pre { padding: 1em; overflow-x: auto; }
-.prose-reader code { padding: 0.1em 0.3em; }
-.prose-reader table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.9rem; }
-.prose-reader td, .prose-reader th { border-bottom: 1px solid var(--color-line); padding: 0.4em 0.6em; text-align: left; }
+.prose-reader pre { padding: 1em 1.1em; overflow-x: auto; }
+.prose-reader code { padding: 0.1em 0.35em; }
+.prose-reader table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.85rem; }
+.prose-reader td, .prose-reader th { border-bottom: 1px solid var(--color-hairline); padding: 0.45em 0.6em; text-align: left; }
 
-.shimmer {
-  background: linear-gradient(90deg, var(--color-sunken) 0%, var(--color-line) 50%, var(--color-sunken) 100%);
-  background-size: 200% 100%;
-  animation: var(--animate-shimmer);
+/* Pending cards breathe instead of flashing. */
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
+.breathe { animation: breathe 2.4s var(--ease-out) infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .shimmer { animation: none; }
+  .breathe { animation: none; }
+  * { scroll-behavior: auto !important; }
 }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

@@ -54,10 +54,10 @@ export function DropZone() {
 
   if (!over) return null;
   return (
-    <div className="pointer-events-none fixed inset-3 z-50 grid place-items-center rounded-3xl border-2 border-dashed border-accent bg-paper/85 backdrop-blur-sm">
-      <div className="flex flex-col items-center gap-3 text-accent">
+    <div className="pointer-events-none fixed inset-3 z-50 grid place-items-center rounded-3xl border-2 border-dashed border-accent bg-canvas/85 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3 text-accent-ink">
         <UploadIcon size={36} />
-        <p className="font-serif text-2xl">Drop to save</p>
+        <p className="font-display text-4xl italic">Drop to save</p>
       </div>
     </div>
   );

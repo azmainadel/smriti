@@ -1,76 +1,92 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useShell } from "@/components/Shell";
 import type { Item } from "@/lib/api";
+import { hostOf, timeAgo } from "@/lib/format";
 import { keys, recordEvent, useResurface } from "@/lib/queries";
-import { timeAgo } from "@/lib/format";
 
-/** The weekly look back: 7 items, each with why it came back. */
+/** The weekly look back: seven things, each with why it came back. */
 export default function DigestPage() {
   const { data, isPending } = useResurface("digest");
   const { data: onThisDay } = useResurface("on-this-day");
+  const { openItem, setSequence } = useShell();
   const qc = useQueryClient();
+  const items = data?.items ?? [];
+
+  useEffect(() => {
+    setSequence(items.map((p) => p.item.id));
+  }, [items, setSequence]);
 
   const dismiss = (item: Item) => {
     recordEvent(item.id, "dismiss", { surface: "digest" });
-    qc.setQueryData(keys.resurface("digest"), data && { ...data, items: data.items.filter((p) => p.item.id !== item.id) });
+    qc.setQueryData(keys.resurface("digest"), data && { ...data, items: items.filter((p) => p.item.id !== item.id) });
+  };
+  const open = (item: Item) => {
+    recordEvent(item.id, "open", { from: "resurface", surface: "digest" });
+    openItem(item.id);
   };
 
+  const week = new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" });
+
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="font-serif text-4xl font-semibold">From your past</h1>
-      <p className="mt-2 text-muted">Seven things worth another look this week.</p>
-      {isPending && <div className="shimmer mt-10 h-64 rounded-xl" />}
-      <ol className="mt-10 space-y-8">
-        {data?.items.map((p, i) => (
-          <li key={p.item.id} className="flex gap-5">
-            <span className="w-6 shrink-0 pt-1 text-right font-serif text-xl text-muted">{i + 1}</span>
-            <div className="min-w-0 flex-1">
-              <Link
-                href={`/item/${p.item.id}`}
-                onClick={() => recordEvent(p.item.id, "open", { from: "resurface", surface: "digest" })}
-                className="font-serif text-xl font-semibold leading-snug hover:underline"
-              >
+    <div className="mx-auto max-w-3xl pb-16 pt-10 sm:pt-16">
+      <p className="label text-accent-ink">Week of {week}</p>
+      <h1 className="mt-3 font-display text-5xl leading-[1.05] sm:text-6xl">From your past</h1>
+      <p className="mt-4 max-w-md text-[15px] text-muted">Seven things you saved and may want to see again, chosen by what you are into now and what you have not looked at in a while.</p>
+
+      {isPending && <div className="breathe mt-14 h-72 rounded-2xl bg-well" />}
+
+      <ol className="mt-14">
+        {items.map((p, i) => (
+          <li key={p.item.id} className="group grid grid-cols-[2.5rem_1fr_auto] gap-x-5 border-t border-hairline py-7">
+            <span className="font-display text-3xl leading-none text-hint">{i + 1}</span>
+            <div className="min-w-0">
+              <button type="button" onClick={() => open(p.item)} className="text-left font-display text-[26px] leading-[1.15] decoration-accent underline-offset-4 hover:underline">
                 {p.item.title ?? p.item.summary ?? p.item.url}
-              </Link>
-              <p className="mt-1 text-sm text-muted">
-                {p.item.site_name ?? p.item.domain ?? p.item.type} · saved {timeAgo(p.item.saved_at)}
+              </button>
+              <p className="mt-1.5 text-[13px] text-hint">
+                {p.item.site_name ?? p.item.domain ?? hostOf(p.item.url) ?? p.item.type} · saved {timeAgo(p.item.saved_at)}
               </p>
-              <p className="mt-2 text-[15px] text-ink-soft">{p.reason}</p>
-              <div className="mt-2 flex gap-2">
-                <Button variant="quiet" onClick={() => dismiss(p.item)}>
+              <p className="mt-3 font-display text-lg italic text-muted">{p.reason}</p>
+              <div className="mt-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                <button type="button" onClick={() => dismiss(p.item)} className="rounded-full px-3 py-1 text-[12px] text-muted hover:bg-card hover:text-ink">
                   Not now
-                </Button>
-                <Link
-                  href={`/item/${p.item.id}#related`}
-                  onClick={() => recordEvent(p.item.id, "more_like_this", { surface: "digest" })}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted hover:bg-sunken hover:text-ink"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    recordEvent(p.item.id, "more_like_this", { surface: "digest" });
+                    open(p.item);
+                  }}
+                  className="rounded-full px-3 py-1 text-[12px] text-muted hover:bg-card hover:text-ink"
                 >
                   More like this
-                </Link>
+                </button>
               </div>
             </div>
-            {p.item.lead_image && (
+            {p.item.lead_image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.item.lead_image} alt="" className="hidden h-20 w-28 shrink-0 rounded-lg object-cover sm:block" />
+              <img src={p.item.lead_image} alt="" className="hidden h-24 w-32 rounded-xl object-cover shadow-[var(--shadow-card)] sm:block" />
+            ) : (
+              <span />
             )}
           </li>
         ))}
       </ol>
-      {data && !data.items.length && <p className="mt-10 text-muted">Nothing yet. Items come back once they are a few days old.</p>}
+      {data && !items.length && <p className="mt-10 font-display text-2xl italic text-hint">Nothing yet. Things come back once they are a few days old.</p>}
 
       {onThisDay && onThisDay.items.length > 0 && (
-        <section className="mt-16">
-          <h2 className="font-serif text-2xl">On this day</h2>
-          <ul className="mt-4 space-y-3">
+        <section className="mt-20">
+          <h2 className="label text-hint">On this day</h2>
+          <ul className="mt-5 space-y-4">
             {onThisDay.items.map((p) => (
               <li key={p.item.id}>
-                <Link href={`/item/${p.item.id}`} className="font-serif text-lg hover:underline">
+                <button type="button" onClick={() => open(p.item)} className="text-left font-display text-2xl hover:underline">
                   {p.item.title ?? p.item.url}
-                </Link>
-                <span className="ml-2 text-sm text-muted">{p.reason}</span>
+                </button>
+                <p className="text-[13px] text-hint">{p.reason}</p>
               </li>
             ))}
           </ul>

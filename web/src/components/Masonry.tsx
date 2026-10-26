@@ -1,17 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type KeyboardEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Item } from "@/lib/api";
 import { Card, type CardProps, estimateHeight } from "./Card";
 
 type Entry = { item: Item; reason?: string; highlight?: string | null };
 type Props = {
   entries: Entry[];
+  /** A card-shaped element placed first, e.g. the inline note composer. */
+  lead?: ReactNode;
+  leadHeight?: number;
   minColumnWidth?: number;
   gap?: number;
   onEndReached?: () => void;
-} & Pick<CardProps, "onDelete" | "onRetry" | "onDismiss">;
+} & Pick<CardProps, "onDelete" | "onRetry" | "onDismiss" | "onOpen">;
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -30,23 +33,25 @@ function useWidth<T extends HTMLElement>() {
  * Newest-first masonry. Items go to the shortest column by estimated height, so reading
  * order stays left-to-right, top-to-bottom (CSS columns would read top-to-bottom per column).
  */
-export function Masonry({ entries, minColumnWidth = 260, gap = 18, onEndReached, ...actions }: Props) {
+export function Masonry({ entries, lead, leadHeight = 190, minColumnWidth = 236, gap = 26, onEndReached, ...actions }: Props) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const router = useRouter();
   const count = width ? Math.max(width < 640 ? 2 : 1, Math.floor((width + gap) / (minColumnWidth + gap))) : 0;
   const mobile = width > 0 && width < 640;
   const colWidth = count ? (width - gap * (count - 1)) / count : 0;
 
+  const hasLead = !!lead;
   const columns = useMemo(() => {
     const cols: { entry: Entry; index: number }[][] = Array.from({ length: count }, () => []);
     const heights = new Array<number>(count).fill(0);
+    if (hasLead && count) heights[0] = leadHeight + gap;
     entries.forEach((entry, index) => {
       const shortest = heights.indexOf(Math.min(...heights));
       cols[shortest]?.push({ entry, index });
-      heights[shortest] = (heights[shortest] ?? 0) + estimateHeight(entry.item, colWidth) + gap;
+      heights[shortest] = (heights[shortest] ?? 0) + estimateHeight(entry.item, colWidth, !!entry.reason) + gap;
     });
     return cols;
-  }, [entries, count, colWidth, gap]);
+  }, [entries, count, colWidth, gap, hasLead, leadHeight]);
 
   // Where each item sits, for arrow-key navigation.
   const position = useMemo(() => {
@@ -93,9 +98,10 @@ export function Masonry({ entries, minColumnWidth = 260, gap = 18, onEndReached,
 
   return (
     <div ref={ref} className="w-full">
-      <div className="flex items-start" style={{ gap: mobile ? 10 : gap }} role="feed" aria-busy={false}>
+      <div className="flex items-start" style={{ gap: mobile ? 12 : gap }} role="feed" aria-busy={false}>
         {columns.map((col, c) => (
-          <div key={c} className="flex min-w-0 flex-1 flex-col" style={{ gap: mobile ? 10 : gap }}>
+          <div key={c} className="flex min-w-0 flex-1 flex-col" style={{ gap: mobile ? 16 : gap }}>
+            {c === 0 && lead}
             {col.map(({ entry, index }) => (
               <Card
                 key={entry.item.id}

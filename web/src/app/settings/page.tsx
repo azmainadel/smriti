@@ -30,8 +30,8 @@ type Models = {
 
 function Section({ title, children, description }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-line py-8">
-      <h2 className="font-serif text-xl font-semibold">{title}</h2>
+    <section className="border-t border-hairline py-8">
+      <h2 className="font-display text-2xl">{title}</h2>
       {description && <p className="mt-1 text-sm text-muted">{description}</p>}
       <div className="mt-5">{children}</div>
     </section>
@@ -56,19 +56,19 @@ function ModelRow({ step, models }: { step: string; models: Models }) {
   });
   const external = provider === "openai";
   return (
-    <tr className="border-t border-line">
+    <tr className="border-t border-hairline">
       <td className="py-2 pr-3 font-medium">{step}</td>
       <td className="py-2 pr-3">
-        <select value={provider} onChange={(e) => setProvider(e.target.value)} className="rounded-lg border border-line bg-surface px-2 py-1" aria-label={`${step} provider`}>
+        <select value={provider} onChange={(e) => setProvider(e.target.value)} className="rounded-lg border border-hairline bg-card px-2 py-1" aria-label={`${step} provider`}>
           <option value="none">none (heuristics)</option>
           <option value="ollama">ollama (local)</option>
           <option value="openai">OpenAI-compatible API</option>
         </select>
       </td>
       <td className="py-2 pr-3">
-        <input value={model} onChange={(e) => setModel(e.target.value)} className="w-48 rounded-lg border border-line bg-surface px-2 py-1" aria-label={`${step} model`} />
+        <input value={model} onChange={(e) => setModel(e.target.value)} className="w-48 rounded-lg border border-hairline bg-card px-2 py-1" aria-label={`${step} model`} />
       </td>
-      <td className="py-2 pr-3">{external && <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent">sends data off this machine</span>}</td>
+      <td className="py-2 pr-3">{external && <span className="rounded-full bg-accent-wash px-2 py-0.5 text-xs text-accent-ink">sends data off this machine</span>}</td>
       <td className="py-2 text-right">
         <Button onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>{" "}
         {step !== "query" && step !== "caption" && <Button variant="quiet" onClick={() => rerun.mutate()}>Re-run all</Button>}
@@ -98,7 +98,7 @@ function Tokens() {
   });
   return (
     <div className="space-y-4">
-      <ul className="divide-y divide-line rounded-xl border border-line">
+      <ul className="divide-y divide-hairline rounded-xl border border-hairline">
         {data?.map((t) => (
           <li key={t.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
             <span className="font-medium">{t.name}</span>
@@ -118,12 +118,12 @@ function Tokens() {
           create.mutate();
         }}
       >
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Device name, e.g. Firefox laptop" className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm" aria-label="Device name" />
-        <input value={secret} onChange={(e) => setSecret(e.target.value)} type="password" placeholder="Owner secret" className="w-40 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm" aria-label="Owner secret" />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Device name, e.g. Firefox laptop" className="flex-1 rounded-lg border border-hairline bg-card px-3 py-1.5 text-sm" aria-label="Device name" />
+        <input value={secret} onChange={(e) => setSecret(e.target.value)} type="password" placeholder="Owner secret" className="w-40 rounded-lg border border-hairline bg-card px-3 py-1.5 text-sm" aria-label="Owner secret" />
         <Button type="submit" disabled={!name || !secret}>New token</Button>
       </form>
       {created && (
-        <div className="rounded-xl bg-accent-soft p-4 text-sm">
+        <div className="rounded-xl bg-accent-wash p-4 text-sm">
           <p className="font-medium">Copy this token now. It is not shown again.</p>
           <code className="mt-2 block break-all font-mono text-xs">{created}</code>
           <p className="mt-2 text-muted">API URL: <code>{API_URL}</code></p>
@@ -153,7 +153,7 @@ function Health() {
           ["Save → ready p95", fmt(data.save_to_ready_s.p95)],
           ["Resurfaced opened", data.resurfacing.shown ? `${Math.round(data.resurfacing.rate * 100)}% of ${data.resurfacing.shown}` : "–"],
         ].map(([k, v]) => (
-          <div key={k as string} className="rounded-xl bg-sunken px-4 py-3">
+          <div key={k as string} className="rounded-xl bg-well px-4 py-3">
             <dt className="text-xs text-muted">{k}</dt>
             <dd className="mt-1 text-lg font-medium">{v}</dd>
           </div>
@@ -168,7 +168,7 @@ function Health() {
             </thead>
             <tbody>
               {data.enrichment.map((r) => (
-                <tr key={r.step} className="border-t border-line">
+                <tr key={r.step} className="border-t border-hairline">
                   <td className="py-1.5">{r.step}</td><td className="text-muted">{r.model ?? "–"}</td><td className="text-right">{r.runs}</td><td className="text-right">{r.avg_ms} ms</td><td className="text-right">{Math.round(r.p95_ms)} ms</td><td className="text-right">{r.avg_tokens}</td><td className="text-right">${r.total_cost.toFixed(4)}</td><td className="text-right">{r.errors}</td>
                 </tr>
               ))}
@@ -184,11 +184,11 @@ function Health() {
         {data.failed.length === 0 ? (
           <p className="text-muted">Nothing failed.</p>
         ) : (
-          <ul className="divide-y divide-line rounded-xl border border-line">
+          <ul className="divide-y divide-hairline rounded-xl border border-hairline">
             {data.failed.map((f) => (
               <li key={f.id} className="px-4 py-2.5">
-                <a href={`/item/${f.item_id}`} className="font-medium hover:underline">{f.title ?? f.source_url ?? f.item_id}</a>
-                <p className="mt-0.5 font-mono text-xs text-danger">{f.step}: {f.error}</p>
+                <a href={`/?item=${f.item_id}`} className="block truncate font-medium hover:underline">{f.title ?? f.source_url ?? f.item_id}</a>
+                <p className="mt-0.5 line-clamp-2 break-all font-mono text-xs text-danger">{f.step}: {f.error}</p>
               </li>
             ))}
           </ul>
@@ -215,8 +215,8 @@ export default function SettingsPage() {
   const file = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="font-serif text-4xl font-semibold">Settings</h1>
+    <div className="mx-auto max-w-4xl pb-16 pt-8 sm:pt-14">
+      <h1 className="font-display text-5xl">Settings</h1>
 
       <Section title="Appearance">
         <div className="flex gap-2">
@@ -256,7 +256,7 @@ export default function SettingsPage() {
       </Section>
 
       <Section title="Capture">
-        <ul className="space-y-3 text-sm text-ink-soft">
+        <ul className="space-y-3 text-sm text-ink-2">
           <li><strong className="text-ink">Browser extension:</strong> load <code>extension/</code> in Chrome or Firefox, then paste the API URL and a token in its options.</li>
           <li><strong className="text-ink">Android:</strong> install this site as an app (browser menu → Install). It then appears in the share sheet.</li>
           <li><strong className="text-ink">iPhone:</strong> make a Shortcut that runs “Get Contents of URL” with POST <code>{API_URL}/items</code>, header <code>Authorization: Bearer &lt;token&gt;</code>, JSON body <code>{"{"}&quot;url&quot;: Shortcut Input{"}"}</code>, and enable it in the share sheet.</li>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
       <Section title="Weekly digest">
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={digest.data?.email ?? false} onChange={(e) => setDigest.mutate(e.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" />
-          Email me 7 items from my past every week (needs SMTP settings on the server). The digest is always at <a className="text-accent underline" href="/digest">/digest</a>.
+          Email me 7 items from my past every week (needs SMTP settings on the server). The digest is always at <a className="text-accent-ink underline" href="/digest">/digest</a>.
         </label>
       </Section>
 
