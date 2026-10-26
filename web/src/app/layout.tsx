@@ -1,13 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk, Newsreader } from "next/font/google";
+import { Hanken_Grotesk, Newsreader } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/Providers";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
 const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", display: "swap" });
-// Fraunces for the voice of the app (search, titles, quotes); Newsreader for long reading.
-const display = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], axes: ["SOFT", "opsz"], variable: "--font-fraunces", display: "swap" });
+// Fraunces is the voice of the app (search, titles, quotes). It is self-hosted as a subset
+// with the SOFT axis pinned at 100: the full variable font is 3x the size for axes we never move.
+const display = localFont({
+  src: [
+    { path: "../fonts/fraunces-soft-normal.woff2", style: "normal", weight: "400 600" },
+    { path: "../fonts/fraunces-soft-italic.woff2", style: "italic", weight: "400 600" },
+  ],
+  variable: "--font-fraunces",
+  display: "swap",
+});
 // Only the reader uses Newsreader, so it loads on demand instead of on every page.
 const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap", preload: false });
 

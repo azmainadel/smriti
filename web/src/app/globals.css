@@ -78,10 +78,7 @@
   [data-theme="dark"] body::before {
     opacity: 0.6;
   }
-  /* Fraunces at its softest: rounded terminals read like ink, not print. */
-  .font-display {
-    font-variation-settings: "SOFT" 100;
-  }
+
   ::selection {
     background: var(--color-mark);
   }
@@ -111,7 +108,6 @@
   font-size: 14px;
   line-height: 1.1;
   font-weight: 400;
-  font-variation-settings: "SOFT" 100;
 }
 
 /* The reader: one serif, a calm measure. */
