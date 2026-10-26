@@ -46,7 +46,7 @@ async def archive_html(page: str, base_url: str) -> str:
     ) as client:
         sheets = tree.xpath("//link[@rel='stylesheet'][@href]")[:15]
         css = await asyncio.gather(
-            *(client.get(urljoin(base_url, l.get("href"))) for l in sheets), return_exceptions=True
+            *(client.get(urljoin(base_url, s.get("href"))) for s in sheets), return_exceptions=True
         )
         for link, resp in zip(sheets, css, strict=True):
             if isinstance(resp, httpx.Response) and resp.status_code == 200:
@@ -67,7 +67,7 @@ async def archive_html(page: str, base_url: str) -> str:
 
     head = tree.find("head")
     if head is not None:
-        base = etree.SubElement(head, "base", href=base_url)
+        base = etree.Element("base", href=base_url)
         head.insert(0, base)
         meta = etree.Element("meta", name="smriti-archived-from", content=base_url)
         head.insert(0, meta)
