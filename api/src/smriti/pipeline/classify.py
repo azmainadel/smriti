@@ -95,8 +95,8 @@ async def head_mime(url: str) -> str | None:
 
 async def classify(ctx: StepContext) -> None:
     item = ctx.item
-    if item.original_key:  # uploaded file: type came from its MIME at save time
-        return
+    if item.original_key or item.meta.get("fixed_type"):
+        return  # uploads, selections and image saves were typed at save time
     if not item.source_url:
         text = (item.content.text if item.content else None) or item.note or ""
         item.type = type_from_text(text)
