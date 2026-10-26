@@ -118,7 +118,7 @@ async def status_page(session: Session, _: Authed) -> dict[str, Any]:
             text(
                 "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY s) AS p50, "
                 "percentile_cont(0.95) WITHIN GROUP (ORDER BY s) AS p95 FROM ("
-                "SELECT extract(epoch FROM max(j.finished_at) - i.saved_at) AS s FROM items i "
+                "SELECT extract(epoch FROM min(j.finished_at) - i.saved_at) AS s FROM items i "
                 "JOIN jobs j ON j.item_id = i.id AND j.step = 'index' AND j.status = 'done' "
                 "WHERE i.saved_at > now() - interval '30 days' AND i.capture <> 'import' GROUP BY i.id) t"
             )
