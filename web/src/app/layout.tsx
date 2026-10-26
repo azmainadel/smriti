@@ -7,8 +7,9 @@ import "./globals.css";
 
 const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", display: "swap" });
 // Fraunces for the voice of the app (search, titles, quotes); Newsreader for long reading.
-const display = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], axes: ["SOFT", "WONK", "opsz"], variable: "--font-fraunces", display: "swap" });
-const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap" });
+const display = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], axes: ["SOFT", "opsz"], variable: "--font-fraunces", display: "swap" });
+// Only the reader uses Newsreader, so it loads on demand instead of on every page.
+const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   title: { default: "Smriti", template: "%s · Smriti" },

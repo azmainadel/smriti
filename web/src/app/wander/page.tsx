@@ -56,7 +56,7 @@ export default function WanderPage() {
           <div className="overflow-hidden rounded-[18px] bg-card shadow-[var(--shadow-hover)] transition-transform duration-500 group-hover:-translate-y-1">
             {item.lead_image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.lead_image} alt="" className="max-h-[52vh] w-full object-cover" />
+              <img src={item.lead_thumb ?? item.lead_image} alt="" className="max-h-[52vh] w-full object-cover" />
             ) : item.type === "palette" && meta.colors ? (
               <div className="flex h-72">
                 {meta.colors.map((c) => (

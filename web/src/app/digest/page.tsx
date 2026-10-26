@@ -68,7 +68,7 @@ export default function DigestPage() {
             </div>
             {p.item.lead_image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.item.lead_image} alt="" className="hidden h-24 w-32 rounded-xl object-cover shadow-[var(--shadow-card)] sm:block" />
+              <img src={p.item.lead_thumb ?? p.item.lead_image} alt="" className="hidden h-24 w-32 rounded-xl object-cover shadow-[var(--shadow-card)] sm:block" />
             ) : (
               <span />
             )}

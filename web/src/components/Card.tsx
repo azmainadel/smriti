@@ -106,7 +106,7 @@ function Tile({ item }: { item: Item }) {
   switch (item.type) {
     case "image":
       return item.lead_image ? (
-        <Img src={item.lead_image} aspect={item.lead_aspect} />
+        <Img src={item.lead_thumb ?? item.lead_image} aspect={item.lead_aspect} />
       ) : (
         <div className="flex aspect-[4/3] flex-col justify-end bg-well p-4">
           <span className="label text-hint">Image</span>
@@ -161,7 +161,7 @@ function Tile({ item }: { item: Item }) {
           <p className="mt-3 line-clamp-[9] whitespace-pre-line text-[15px] leading-[1.5]">{meta.tweet_text ?? item.title}</p>
           {item.lead_image && (
             <div className="mt-3 overflow-hidden rounded-lg">
-              <Img src={item.lead_image} aspect={item.lead_aspect} />
+              <Img src={item.lead_thumb ?? item.lead_image} aspect={item.lead_aspect} />
             </div>
           )}
           {meta.posts && meta.posts > 1 ? <p className="label mt-3 text-hint">Thread · {meta.posts}</p> : null}
@@ -172,7 +172,7 @@ function Tile({ item }: { item: Item }) {
     case "audio":
       return item.lead_image ? (
         <div className="relative">
-          <Img src={item.lead_image} aspect={item.lead_aspect} />
+          <Img src={item.lead_thumb ?? item.lead_image} aspect={item.lead_aspect} />
           {meta.duration ? (
             <span className="absolute bottom-2.5 left-2.5 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[11px] text-white backdrop-blur-sm">
               {duration(meta.duration)}
@@ -187,7 +187,7 @@ function Tile({ item }: { item: Item }) {
       return item.lead_image ? (
         <div className="bg-well px-9 pt-7">
           <div className="overflow-hidden rounded-t-[3px] bg-white shadow-[0_4px_18px_rgb(0_0_0/0.12)]">
-            <Img src={item.lead_image} aspect={item.lead_aspect} />
+            <Img src={item.lead_thumb ?? item.lead_image} aspect={item.lead_aspect} />
           </div>
         </div>
       ) : (
@@ -197,7 +197,7 @@ function Tile({ item }: { item: Item }) {
     case "product":
       return item.lead_image ? (
         <div className="relative bg-white">
-          <Img src={item.lead_image} aspect={1} contain />
+          <Img src={item.lead_thumb ?? item.lead_image} aspect={1} contain />
           {meta.price && (
             <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[12px] font-medium text-canvas">
               {price(meta.price, meta.currency)}
@@ -210,7 +210,7 @@ function Tile({ item }: { item: Item }) {
 
     default:
       return item.lead_image ? (
-        <Img src={item.lead_image} aspect={item.lead_aspect} />
+        <Img src={item.lead_thumb ?? item.lead_image} aspect={item.lead_aspect} />
       ) : (
         <TextTile kicker={site} title={item.title ?? item.url} site={null} summary={item.summary} />
       );

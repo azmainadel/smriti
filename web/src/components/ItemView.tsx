@@ -300,7 +300,7 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
                 >
                   {r.item.lead_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={r.item.lead_image} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                    <img src={r.item.lead_thumb ?? r.item.lead_image} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
                   ) : (
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-well font-display text-lg text-hint">
                       {(r.item.title ?? r.item.summary ?? "?").slice(0, 1)}

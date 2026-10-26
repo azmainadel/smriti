@@ -7,10 +7,13 @@ import { type ReactNode, Suspense, createContext, useCallback, useContext, useEf
 import { useSave } from "@/lib/queries";
 import { useHotkeys } from "@/lib/shortcuts";
 import { useTheme } from "@/lib/theme";
-import { Composer } from "./Composer";
+import dynamic from "next/dynamic";
 import { DropZone } from "./DropZone";
-import { ItemView } from "./ItemView";
-import { ShortcutsHelp } from "./ShortcutsHelp";
+
+// Loaded on first use: none of these are needed to paint the grid.
+const ItemView = dynamic(() => import("./ItemView").then((m) => m.ItemView), { ssr: false });
+const Composer = dynamic(() => import("./Composer").then((m) => m.Composer), { ssr: false });
+const ShortcutsHelp = dynamic(() => import("./ShortcutsHelp").then((m) => m.ShortcutsHelp), { ssr: false });
 import { MoonIcon, PlusIcon, SettingsIcon, SunIcon } from "./ui/icons";
 import { toaster } from "./ui/toast";
 
@@ -171,8 +174,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <Suspense>
         <Overlay sequence={sequence} />
       </Suspense>
-      <Composer open={composerOpen} onOpenChange={setComposerOpen} />
-      <ShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
+      {composerOpen && <Composer open onOpenChange={setComposerOpen} />}
+      {helpOpen && <ShortcutsHelp open onOpenChange={setHelpOpen} />}
       <DropZone />
     </ShellContext.Provider>
   );

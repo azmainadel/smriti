@@ -80,7 +80,7 @@
   }
   /* Fraunces at its softest: rounded terminals read like ink, not print. */
   .font-display {
-    font-variation-settings: "SOFT" 100, "WONK" 0;
+    font-variation-settings: "SOFT" 100;
   }
   ::selection {
     background: var(--color-mark);
