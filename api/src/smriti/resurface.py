@@ -364,6 +364,16 @@ async def digest(
     return picks
 
 
+async def serendipity(
+    session: AsyncSession, now: datetime | None = None, n: int = 24
+) -> list[Pick]:
+    """A slow walk through the library: mostly things not seen in a long time."""
+    now = now or datetime.now(UTC)
+    picks = diversify(await score_candidates(session, now, weights=(0.2, 0.6, 0.2)), n)
+    await _log_shown(session, picks, "serendipity", now)
+    return picks
+
+
 async def on_this_day(
     session: AsyncSession, now: datetime | None = None, n: int = 10
 ) -> list[Pick]:

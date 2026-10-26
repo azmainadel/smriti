@@ -254,6 +254,9 @@ async def test_resurface_and_related(client: AsyncClient) -> None:
     related = [r["item"]["id"] for r in detail["related"]]
     assert old[2]["id"] in related[:2] and old[1]["id"] not in related  # sourdough is unrelated
 
+    walk = (await client.get("/resurface", params={"surface": "serendipity"})).json()["items"]
+    assert walk and all(p["reason"] for p in walk)
+
     r = await client.post("/events", json={"item_id": home[0]["item"]["id"], "kind": "dismiss"})
     assert r.status_code == 204
 

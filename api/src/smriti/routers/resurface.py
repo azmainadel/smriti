@@ -15,7 +15,7 @@ router = APIRouter(tags=["resurface"])
 async def resurface(
     session: Annotated[AsyncSession, Depends(get_session)],
     _: Authed,
-    surface: Literal["home", "digest", "on-this-day"] = "home",
+    surface: Literal["home", "digest", "on-this-day", "serendipity"] = "home",
 ) -> ResurfaceOut:
     """Items for a surface, each with the reason it came back."""
     match surface:
@@ -25,6 +25,8 @@ async def resurface(
             picks = await rs.digest(session)
         case "on-this-day":
             picks = await rs.on_this_day(session)
+        case "serendipity":
+            picks = await rs.serendipity(session)
     return ResurfaceOut(
         surface=surface,
         items=[

@@ -1255,7 +1255,7 @@ export interface operations {
     resurface_resurface_get: {
         parameters: {
             query?: {
-                surface?: "home" | "digest" | "on-this-day";
+                surface?: "home" | "digest" | "on-this-day" | "serendipity";
             };
             header?: never;
             path?: never;

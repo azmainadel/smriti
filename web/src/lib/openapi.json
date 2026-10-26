@@ -622,7 +622,8 @@
               "enum": [
                 "home",
                 "digest",
-                "on-this-day"
+                "on-this-day",
+                "serendipity"
               ],
               "type": "string",
               "default": "home",
