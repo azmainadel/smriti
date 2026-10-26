@@ -7,7 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     PATH="/app/.venv/bin:$PATH" \
-    HF_HOME=/models
+    HF_HOME=/models \
+    FASTEMBED_CACHE_PATH=/models/fastembed
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng ffmpeg curl \
