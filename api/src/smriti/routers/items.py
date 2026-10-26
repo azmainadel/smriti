@@ -154,6 +154,12 @@ async def _load(session: AsyncSession, item_id: uuid.UUID) -> Item:
     return item
 
 
+@router.get("/{item_id}/card", response_model=ItemOut)
+async def get_card(item_id: uuid.UUID, session: Session, _: Authed) -> ItemOut:
+    """Just what a grid card needs; the web app refetches this as status events arrive."""
+    return item_out(await _load(session, item_id))
+
+
 @router.get("/{item_id}", response_model=ItemDetail)
 async def get_item(item_id: uuid.UUID, session: Session, _: Authed) -> ItemDetail:
     item = await _load(session, item_id)

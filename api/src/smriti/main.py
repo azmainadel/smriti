@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 
 from smriti import __version__
 from smriti.config import get_settings
@@ -20,6 +21,7 @@ from smriti.routers import (
     stream,
     tokens,
 )
+from smriti.schemas import ItemCreate
 from smriti.telemetry import setup_tracing
 
 
@@ -54,6 +56,20 @@ def create_app() -> FastAPI:
     async def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__}
 
+    def openapi() -> dict:
+        # POST /items reads its body by hand (JSON or multipart), so register its JSON model.
+        if app.openapi_schema is None:
+            schema = get_openapi(
+                title=app.title, version=app.version, summary=app.summary, routes=app.routes
+            )
+            body = ItemCreate.model_json_schema(ref_template="#/components/schemas/{model}")
+            components = schema.setdefault("components", {}).setdefault("schemas", {})
+            components.update(body.pop("$defs", {}))
+            components["ItemCreate"] = body
+            app.openapi_schema = schema
+        return app.openapi_schema
+
+    app.openapi = openapi  # type: ignore[method-assign]
     setup_tracing("smriti-api", app)
     return app
 
