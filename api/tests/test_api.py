@@ -327,3 +327,26 @@ async def test_stream_reports_status(client: AsyncClient, n: int) -> None:
         while not queue.empty():
             steps.append(json.loads(queue.get_nowait())["step"])
         assert steps[-1] == "index"
+
+
+async def test_backfill_cascades_to_enrichment(client: AsyncClient) -> None:
+    from sqlalchemy import text as sql
+
+    from smriti.db import get_sessionmaker
+
+    item = await save(client, text="A short note about sourdough starters and their feeding schedules today.")
+    await run_until_idle()
+    async with get_sessionmaker()() as s:
+        await s.execute(
+            sql("UPDATE item_content SET text = :t WHERE item_id = :id"),
+            {"t": "Completely different words about orbital mechanics and the rocket equation now.", "id": item["id"]},
+        )
+        await s.commit()
+    r = (await client.post("/admin/reindex", json={"step": "extract", "force": True})).json()
+    assert r["enqueued"] == 1
+    # extract, snapshot, enrich, index all re-run under a fresh key suffix.
+    assert await run_until_idle() == 4
+    d = (await client.get(f"/items/{item['id']}")).json()
+    assert "orbital" in d["summary"]
+    hits = (await client.get("/search", params={"q": "rocket equation"})).json()["hits"]
+    assert hits and hits[0]["item"]["id"] == item["id"]

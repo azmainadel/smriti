@@ -73,23 +73,34 @@ async def start(session: AsyncSession, item_id: uuid.UUID) -> None:
     )
 
 
+def _suffix(job: Job) -> str:
+    parts = job.idempotency_key.split(":", 3)
+    return parts[3] if len(parts) == 4 else ""
+
+
 async def advance(session: AsyncSession, job: Job) -> None:
     """Enqueue what follows a finished job.
 
-    A chained job continues the workflow. An unchained one (a backfill of one step, or a
-    re-enrichment) only refreshes the search fields: index is cheap and derived, so it
-    re-runs under a fresh key.
+    A chained job continues the workflow under the same key suffix. An unchained one
+    re-runs its own step and then everything downstream of it under a fresh suffix
+    (`after-<job id>`), so a re-extracted item is also re-enriched and re-indexed.
+    Enrichment re-runs only refresh the search fields.
     """
-    if job.item_id is None:
+    if job.item_id is None or job.step == "index":
         return
-    if job.chain:
+    if job.step.startswith("enrich."):
+        step, chain, suffix = BY_NAME["index"], False, f"after-{job.id}"
+    else:
         step = next_step(job.step)
-        if step:
-            await queue.enqueue(
-                session, job.item_id, step.name, step.version, max_attempts=step.max_attempts
-            )
-    elif job.step != "index":
-        step = BY_NAME["index"]
-        await queue.enqueue(
-            session, job.item_id, step.name, step.version, key_suffix=f"after-{job.id}"
-        )
+        if step is None:
+            return
+        chain, suffix = True, _suffix(job) if job.chain else f"after-{job.id}"
+    await queue.enqueue(
+        session,
+        job.item_id,
+        step.name,
+        step.version,
+        chain=chain,
+        max_attempts=step.max_attempts,
+        key_suffix=suffix,
+    )

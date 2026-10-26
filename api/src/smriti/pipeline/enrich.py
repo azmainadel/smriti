@@ -3,6 +3,7 @@ re-run in bulk when a model improves (POST /admin/reindex)."""
 
 import asyncio
 import base64
+import hashlib
 import logging
 import uuid
 from collections.abc import Awaitable, Callable
@@ -10,6 +11,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from smriti.db import get_sessionmaker
 from smriti.ml import adapter
@@ -399,28 +401,43 @@ ENRICHERS: dict[str, Enricher] = {
 }
 
 
-async def _done(item_id: uuid.UUID, enricher: Enricher) -> bool:
-    async with get_sessionmaker()() as s:
-        row = await s.execute(
+def fingerprint(item: Item) -> str:
+    """What enrichment reads. A re-extracted page with new text gets re-enriched even when
+    the enricher version did not change; an unchanged one is skipped."""
+    content = item.content
+    parts = [
+        item.title or "",
+        item.note or "",
+        item.type,
+        (content.text or "")[:200_000] if content else "",
+        ",".join(sorted(a.storage_key for a in item.assets)),
+    ]
+    return hashlib.sha256("\x1f".join(parts).encode()).hexdigest()[:16]
+
+
+async def _done(session: AsyncSession, item_id: uuid.UUID, enricher: Enricher, fp: str) -> bool:
+    output = (
+        await session.execute(
             select(Enrichment.output).where(
                 Enrichment.item_id == item_id,
                 Enrichment.step == enricher.name,
                 Enrichment.version == enricher.version,
             )
         )
-        output = row.scalar()
-        return output is not None and "error" not in output
+    ).scalar()
+    return output is not None and "error" not in output and output.get("_input") == fp
 
 
 async def run_enricher(
     item_id: uuid.UUID, enricher: Enricher, *, force: bool = False
 ) -> str | None:
     """Run one sub-step in its own transaction. Returns an error message, or None."""
-    if not force and await _done(item_id, enricher):
-        return None
     async with get_sessionmaker()() as session:
         ctx = await StepContext.load(session, item_id)
         if ctx is None:
+            return None
+        ctx.fingerprint = fingerprint(ctx.item)
+        if not force and await _done(session, item_id, enricher, ctx.fingerprint):
             return None
         try:
             await enricher.run(ctx)

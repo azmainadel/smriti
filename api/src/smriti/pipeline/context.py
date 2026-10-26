@@ -28,6 +28,8 @@ class StepContext:
     session: AsyncSession
     item: Item
     storage: Storage = field(default_factory=get_storage)
+    # Set by enrichment: a hash of the inputs, stored with each output to skip unchanged items.
+    fingerprint: str | None = None
 
     @classmethod
     async def load(cls, session: AsyncSession, item_id: uuid.UUID) -> "StepContext | None":
@@ -67,7 +69,7 @@ class StepContext:
             "item_id": self.item.id,
             "step": step,
             "version": version,
-            "output": output,
+            "output": {**output, "_input": self.fingerprint} if self.fingerprint else output,
             "model": model,
             "tokens": tokens,
             "cost": cost,
