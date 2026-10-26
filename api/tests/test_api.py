@@ -334,12 +334,17 @@ async def test_backfill_cascades_to_enrichment(client: AsyncClient) -> None:
 
     from smriti.db import get_sessionmaker
 
-    item = await save(client, text="A short note about sourdough starters and their feeding schedules today.")
+    item = await save(
+        client, text="A short note about sourdough starters and their feeding schedules today."
+    )
     await run_until_idle()
     async with get_sessionmaker()() as s:
         await s.execute(
             sql("UPDATE item_content SET text = :t WHERE item_id = :id"),
-            {"t": "Completely different words about orbital mechanics and the rocket equation now.", "id": item["id"]},
+            {
+                "t": "Completely different words about orbital mechanics and the rocket equation now.",
+                "id": item["id"],
+            },
         )
         await s.commit()
     r = (await client.post("/admin/reindex", json={"step": "extract", "force": True})).json()
