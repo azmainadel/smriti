@@ -62,27 +62,33 @@ def tsquery_string(query: str, *, any_word: bool = False) -> str | None:
     return (" | " if any_word else " & ").join(parts)
 
 
+# Ranking reads every matching tsvector, so a term found in most of the library costs a
+# full scan. Rank at most this many matches; for such terms the semantic list carries ranking.
+MAX_RANKED_MATCHES = 3000
+
+
 async def keyword(
     session: AsyncSession, pq: ParsedQuery, f: Filters, limit: int
 ) -> list[uuid.UUID]:
     results: list[uuid.UUID] = []
-    for any_word in (False, True):
+    multiword = len(_TOKEN.findall(pq.text)) > 1
+    for any_word in (False, True) if multiword else (False,):
         tsq = tsquery_string(pq.text, any_word=any_word)
         if not tsq:
             return []
         rows = await session.execute(
             text(
-                "SELECT ic.item_id FROM item_content ic JOIN items i ON i.id = ic.item_id "
-                f"WHERE ic.tsv @@ to_tsquery('english', :q) AND {f.sql} "
-                "ORDER BY ts_rank_cd(ic.tsv, to_tsquery('english', :q), 32) DESC LIMIT :limit"
+                "WITH m AS (SELECT ic.item_id, ic.tsv FROM item_content ic JOIN items i ON i.id = ic.item_id "
+                f"WHERE ic.tsv @@ to_tsquery('english', :q) AND {f.sql} LIMIT :cap) "
+                "SELECT item_id FROM m ORDER BY ts_rank_cd(tsv, to_tsquery('english', :q), 32) DESC LIMIT :limit"
             ),
-            {**f.params, "q": tsq, "limit": limit},
+            {**f.params, "q": tsq, "limit": limit, "cap": MAX_RANKED_MATCHES},
         )
         for item_id in rows.scalars():
             if item_id not in results:
                 results.append(item_id)
-        # Fall back to OR only when AND is too strict.
-        if len(results) >= 10:
+        # Fall back to OR only when AND finds almost nothing.
+        if len(results) >= 3:
             break
     return results
 
