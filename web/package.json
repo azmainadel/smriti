@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
-    "gen:api": "openapi-typescript src/lib/openapi.json -o src/lib/schema.d.ts"
+    "gen:api": "openapi-typescript src/lib/openapi.json -o src/lib/schema.d.ts --default-non-nullable false"
   },
   "dependencies": {
     "@ark-ui/react": "5.39.3",
