@@ -134,7 +134,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3 sm:h-16 sm:flex-nowrap sm:px-8 sm:pt-0">
         <Link href="/" className="group flex items-baseline gap-2" aria-label="Smriti, everything">
           <span className="font-display text-[25px] font-medium leading-none tracking-[-0.02em]">smriti</span>
-          <span lang="bn" className="text-[13px] leading-none text-accent transition-opacity group-hover:opacity-100 sm:opacity-70">
+          <span lang="bn" className="text-[16px] leading-none text-accent">
             স্মৃতি
           </span>
         </Link>
