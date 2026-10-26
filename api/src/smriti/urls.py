@@ -7,7 +7,7 @@ _TRACKING_PARAMS = re.compile(
     r"^(utm_\w+|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|igshid|ref_src|ref_url|s|si|t|"
     r"_hsenc|_hsmi|mkt_tok|yclid|spm|share_id|ncid|cmpid|smid|sref)$"
 )
-# Params that are part of identity on these hosts and must survive the filter above.
+# On these hosts only the listed params identify the page; everything else is dropped.
 _KEEP_ON_HOST = {"youtube.com": {"v", "list", "t"}, "news.ycombinator.com": {"id"}}
 _HOST_ALIASES = {
     "x.com": "twitter.com",
@@ -35,7 +35,7 @@ def canonicalize(url: str) -> str:
     query = sorted(
         (k, v)
         for k, v in parse_qsl(parts.query, keep_blank_values=False)
-        if k in keep or not _TRACKING_PARAMS.match(k)
+        if (k in keep if keep else not _TRACKING_PARAMS.match(k))
     )
     path = re.sub(r"/{2,}", "/", parts.path) or "/"
     if path != "/" and path.endswith("/"):
