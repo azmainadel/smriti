@@ -72,6 +72,8 @@ class Settings(BaseSettings):
     search_rerank_cross_encoder: bool = False
     # Below this cosine similarity, "related" items are noise. Tuned for bge-small.
     related_min_similarity: float = 0.55
+    # Semantic hits further than this cosine distance are dropped. Tuned for bge-small.
+    semantic_max_distance: float = 0.5
     search_candidates: int = Field(default=200, ge=10, le=2000)
 
 

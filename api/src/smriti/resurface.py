@@ -223,11 +223,21 @@ def _reason(
 
 
 async def score_candidates(
-    session: AsyncSession, now: datetime, weights=(0.5, 0.3, 0.2), pool: int = 400
-) -> list[Pick]:  # noqa: ANN001
+    session: AsyncSession,
+    now: datetime,
+    weights: tuple[float, float, float] = (0.5, 0.3, 0.2),
+    pool: int = 400,
+    *,
+    min_age: timedelta = timedelta(days=2),
+    include_recent: bool = False,
+) -> list[Pick]:
+    """Score items for resurfacing. The strip and digest skip what was just saved; a
+    serendipity walk may include it."""
     ctx = await _context(session, now)
     related = await _related_to_recent(session, ctx)
-    excluded = await _shown_before_today(session, now) | set(ctx.recent_ids)
+    excluded = await _shown_before_today(session, now) | (
+        set() if include_recent else set(ctx.recent_ids)
+    )
 
     # Forgetting candidates: least recently seen, plus a random sample so the long tail gets a chance.
     stale = await session.execute(
@@ -235,7 +245,7 @@ async def score_candidates(
         .where(
             Item.status == ItemStatus.ready,
             Item.duplicate_of.is_(None),
-            Item.saved_at < now - timedelta(days=2),
+            Item.saved_at < now - min_age,
         )
         .order_by(func.coalesce(Item.last_opened_at, Item.saved_at))
         .limit(pool // 2)
@@ -245,7 +255,7 @@ async def score_candidates(
         .where(
             Item.status == ItemStatus.ready,
             Item.duplicate_of.is_(None),
-            Item.saved_at < now - timedelta(days=2),
+            Item.saved_at < now - min_age,
         )
         .order_by(func.random())
         .limit(pool // 2)
@@ -369,7 +379,10 @@ async def serendipity(
 ) -> list[Pick]:
     """A slow walk through the library: mostly things not seen in a long time."""
     now = now or datetime.now(UTC)
-    picks = diversify(await score_candidates(session, now, weights=(0.2, 0.6, 0.2)), n)
+    scored = await score_candidates(
+        session, now, weights=(0.2, 0.6, 0.2), min_age=timedelta(0), include_recent=True
+    )
+    picks = diversify(scored, n)
     await _log_shown(session, picks, "serendipity", now)
     return picks
 

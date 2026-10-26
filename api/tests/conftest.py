@@ -20,6 +20,7 @@ os.environ.update(
         "SMRITI_LOG_LEVEL": "WARNING",
         # Hash embeddings score lower than real models; scale the related-items floor down.
         "SMRITI_RELATED_MIN_SIMILARITY": "0.15",
+        "SMRITI_SEMANTIC_MAX_DISTANCE": "0.9",
     }
 )
 

@@ -9,6 +9,7 @@ from typing import Any, Protocol
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from smriti.config import get_settings
 from smriti.ml.colors import NEUTRALS, name_to_lab
 from smriti.search.query_parser import ParsedQuery
 
@@ -138,9 +139,16 @@ vector_index: VectorIndex = PgVectorIndex()
 
 
 async def semantic(
-    session: AsyncSession, vector: list[float], f: Filters, limit: int, max_distance: float = 0.75
+    session: AsyncSession,
+    vector: list[float],
+    f: Filters,
+    limit: int,
+    max_distance: float | None = None,
 ) -> tuple[list[uuid.UUID], dict[uuid.UUID, str]]:
     """Nearest chunks collapsed to items; also returns each item's best-matching chunk."""
+    max_distance = (
+        max_distance if max_distance is not None else get_settings().semantic_max_distance
+    )
     order: list[uuid.UUID] = []
     best: dict[uuid.UUID, str] = {}
     for item_id, distance, chunk in await vector_index.nearest(session, vector, f, limit):
