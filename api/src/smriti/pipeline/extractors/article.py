@@ -56,7 +56,7 @@ def extract_article(doc: str, url: str) -> Extraction:
         meta={
             k: v
             for k, v in {
-                "author": meta.author if meta else None,
+                "author": _author(tags, meta),
                 "published": meta.date if meta else None,
                 "words": len(text.split()),
                 # Little text but a description usually means a paywall or cookie wall.
@@ -94,3 +94,14 @@ def strip_site_suffix(title: str, site_name: str | None, url: str) -> str:
 
 def _squash(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
+def _author(tags: dict[str, str], meta) -> str | None:  # noqa: ANN001
+    """A byline from the page's own tags, else trafilatura's guess if it reads like a name.
+
+    The guess sometimes picks up navigation text ("Authority control databases National").
+    """
+    if author := tags.get("author") or tags.get("article:author"):
+        return author
+    guess = meta.author if meta else None
+    return guess if guess and len(guess.split()) <= 4 and not guess.startswith("http") else None
