@@ -20,6 +20,7 @@ _BLOCKS = {
     "h5",
     "h6",
 }
+_CONTAINERS = {"td", "li", "dd"}
 _SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"“(])")
 
 
@@ -64,7 +65,10 @@ def chunk_html(html: str | None, text: str | None = None, max_chars: int = 1200)
 
     for el in tree.iter(*_BLOCKS):
         # Skip blocks nested in another block we already take whole (e.g. p inside blockquote).
-        if any(a.tag in _BLOCKS for a in el.iterancestors()):
+        if any(a.tag in _BLOCKS - _CONTAINERS for a in el.iterancestors()):
+            continue
+        # Cells and list items that wrap paragraphs are containers, not paragraphs.
+        if el.tag in _CONTAINERS and any(d.tag in _BLOCKS for d in el.iterdescendants()):
             continue
         content = re.sub(r"[ \t]+", " ", el.text_content()).strip()
         if not content:

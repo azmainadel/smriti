@@ -88,10 +88,13 @@ def html_to_text(doc: str) -> str:
     tree = parse(doc)
     for el in tree.iterfind(".//br"):
         el.tail = "\n" + (el.tail or "")
+    tags = ("h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "blockquote", "pre", "figcaption", "td")
     blocks = []
-    for el in tree.iter(
-        "h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "blockquote", "pre", "figcaption", "td"
-    ):
+    for el in tree.iter(*tags):
+        # Take the innermost blocks only: a table cell or list item that wraps paragraphs
+        # would otherwise glue them together ("July 2023If you...") and repeat them.
+        if any(d.tag in tags for d in el.iterdescendants()):
+            continue
         text = el.text_content().strip()
         if text:
             blocks.append(text)

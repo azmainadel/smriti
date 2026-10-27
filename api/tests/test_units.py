@@ -112,6 +112,16 @@ def test_chunking_follows_headings() -> None:
     assert all(len(c.text) <= 300 for c in long) and len(long) > 5
 
 
+def test_wrapped_paragraphs_stay_separate() -> None:
+    from smriti.pipeline.extractors.html import html_to_text
+
+    html = "<table><tr><td><p>July 2023</p><p>If you collected lists of techniques.</p></td></tr></table>"
+    assert html_to_text(html) == "July 2023\n\nIf you collected lists of techniques."
+    assert [c.text for c in chunk_html(html)] == [
+        "July 2023\nIf you collected lists of techniques."
+    ]
+
+
 def test_heuristics() -> None:
     text = (
         "Japanese carpentry uses joinery instead of nails. Joinery takes years to learn. "
