@@ -20,11 +20,23 @@ const display = localFont({
 // Only the reader uses Newsreader, so it loads on demand instead of on every page.
 const serif = Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap", preload: false });
 
+const description = "A quiet place for everything you save.";
+
 export const metadata: Metadata = {
+  // Share cards need absolute image URLs.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000"),
   title: { default: "Smriti", template: "%s · Smriti" },
-  description: "Save anything. Find it by meaning.",
+  description,
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon-192.png" },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-icon.png",
+  },
+  openGraph: { type: "website", siteName: "Smriti", title: "Smriti", description },
+  twitter: { card: "summary_large_image", title: "Smriti", description },
   appleWebApp: { capable: true, title: "Smriti", statusBarStyle: "default" },
 };
 

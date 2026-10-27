@@ -79,6 +79,7 @@ services:
       context: ./web
       args:
         NEXT_PUBLIC_API_URL: ${SMRITI_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_WEB_URL: ${SMRITI_WEB_URL:-http://localhost:3000}
     ports: ["3000:3000"]
     depends_on: [api]
     restart: unless-stopped
