@@ -30,28 +30,68 @@ function useWidth<T extends HTMLElement>() {
 }
 
 /**
- * Newest-first masonry. Items go to the shortest column by estimated height, so reading
- * order stays left-to-right, top-to-bottom (CSS columns would read top-to-bottom per column).
+ * Newest-first masonry. Items go to the shortest column, so reading order stays
+ * left-to-right, top-to-bottom (CSS columns would read top-to-bottom per column).
+ * Heights start as estimates and are replaced by measured ones as cards render, so the
+ * columns end up level instead of drifting apart.
  */
 export function Masonry({ entries, lead, leadHeight = 190, minColumnWidth = 236, gap = 26, onEndReached, ...actions }: Props) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const router = useRouter();
   const count = width ? Math.max(width < 640 ? 2 : 1, Math.floor((width + gap) / (minColumnWidth + gap))) : 0;
   const mobile = width > 0 && width < 640;
-  const colWidth = count ? (width - gap * (count - 1)) / count : 0;
+  const colGap = mobile ? 12 : gap;
+  const rowGap = mobile ? 16 : gap;
+  const colWidth = count ? (width - colGap * (count - 1)) / count : 0;
+
+  // Measured card heights by item id; a version bump re-balances the columns.
+  const measured = useRef(new Map<string, number>());
+  const [version, setVersion] = useState(0);
+  useEffect(() => measured.current.clear(), [colWidth]);
 
   const hasLead = !!lead;
   const columns = useMemo(() => {
     const cols: { entry: Entry; index: number }[][] = Array.from({ length: count }, () => []);
     const heights = new Array<number>(count).fill(0);
-    if (hasLead && count) heights[0] = leadHeight + gap;
+    if (hasLead && count) heights[0] = (measured.current.get("lead") ?? leadHeight) + rowGap;
     entries.forEach((entry, index) => {
       const shortest = heights.indexOf(Math.min(...heights));
       cols[shortest]?.push({ entry, index });
-      heights[shortest] = (heights[shortest] ?? 0) + estimateHeight(entry.item, colWidth, !!entry.reason) + gap;
+      const h = measured.current.get(entry.item.id) ?? estimateHeight(entry.item, colWidth, !!entry.reason);
+      heights[shortest] = (heights[shortest] ?? 0) + h + rowGap;
     });
     return cols;
-  }, [entries, count, colWidth, gap, hasLead, leadHeight]);
+    // `version` is how measurements invalidate this layout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, count, colWidth, rowGap, hasLead, leadHeight, version]);
+
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    let frame = 0;
+    const observer = new ResizeObserver((records) => {
+      let changed = false;
+      for (const r of records) {
+        const el = r.target as HTMLElement;
+        const id = el.dataset.cardId ?? (el.dataset.lead !== undefined ? "lead" : null);
+        if (!id) continue;
+        const h = Math.round(r.contentRect.height);
+        if (Math.abs((measured.current.get(id) ?? -100) - h) > 2) {
+          measured.current.set(id, h);
+          changed = true;
+        }
+      }
+      if (changed) {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => setVersion((v) => v + 1));
+      }
+    });
+    root.querySelectorAll("[data-card-id], [data-lead]").forEach((el) => observer.observe(el));
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [columns, ref]);
 
   // Where each item sits, for arrow-key navigation.
   const position = useMemo(() => {
@@ -78,13 +118,15 @@ export function Masonry({ entries, lead, leadHeight = 190, minColumnWidth = 236,
       else if (e.key === "ArrowUp") target = columns[c]?.[r - 1]?.index;
       else if (e.key === "Enter") {
         e.preventDefault();
-        router.push(`/item/${entries[index]?.item.id}`);
+        const item = entries[index]?.item;
+        if (item && actions.onOpen) actions.onOpen(item);
+        else if (item) router.push(`/item/${item.id}`);
         return;
       } else return;
       e.preventDefault();
       if (target !== undefined && target >= 0 && target < entries.length) focusIndex(target);
     },
-    [position, columns, entries, focusIndex, router],
+    [position, columns, entries, focusIndex, router, actions.onOpen],
   );
 
   // Infinite scroll: load more when the shortest column's end comes into view.
@@ -98,10 +140,10 @@ export function Masonry({ entries, lead, leadHeight = 190, minColumnWidth = 236,
 
   return (
     <div ref={ref} className="w-full">
-      <div className="flex items-start" style={{ gap: mobile ? 12 : gap }} role="feed" aria-busy={false}>
+      <div className="flex items-start" style={{ gap: colGap }} role="feed" aria-busy={false}>
         {columns.map((col, c) => (
-          <div key={c} className="flex min-w-0 flex-1 flex-col" style={{ gap: mobile ? 16 : gap }}>
-            {c === 0 && lead}
+          <div key={c} className="flex min-w-0 flex-1 flex-col" style={{ gap: rowGap }}>
+            {c === 0 && lead && <div data-lead="">{lead}</div>}
             {col.map(({ entry, index }) => (
               <Card
                 key={entry.item.id}

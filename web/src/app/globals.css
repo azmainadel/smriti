@@ -165,7 +165,9 @@
 /* Index-card rules under notes, aligned to their 26px line height. */
 .ruled {
   background-image: repeating-linear-gradient(to bottom, transparent 0 25px, var(--color-hairline) 25px 26px);
-  background-position: 0 13px;
+  /* Rules start where the text starts, so none sits in the padding above the first line. */
+  background-origin: content-box;
+  background-clip: content-box;
 }
 
 .no-scrollbar { scrollbar-width: none; }

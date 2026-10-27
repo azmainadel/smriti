@@ -29,7 +29,7 @@ export function NoteCard() {
 
   return (
     <div
-      className={`ruled rounded-[var(--radius-card)] bg-card p-5 shadow-[var(--shadow-card)] transition-shadow duration-300 ${focused ? "shadow-[var(--shadow-hover)]" : ""}`}
+      className={`rounded-[var(--radius-card)] bg-card p-5 shadow-[var(--shadow-card)] transition-shadow duration-300 ${focused ? "shadow-[var(--shadow-hover)]" : ""}`}
     >
       <label htmlFor="new-note" className="label text-accent-ink">
         Jot something down
@@ -56,7 +56,7 @@ export function NoteCard() {
           }
         }}
         placeholder="A thought, a quote, a few hex colors…"
-        className="mt-2 block w-full resize-none bg-transparent font-serif text-[16px] leading-[26px] text-ink outline-none placeholder:italic placeholder:text-hint"
+        className="ruled mt-2 block w-full resize-none bg-transparent font-serif text-[16px] leading-[26px] text-ink outline-none placeholder:italic placeholder:text-hint"
       />
       <p className={`text-[11px] text-hint transition-opacity ${focused ? "opacity-100" : "opacity-0"}`}>
         ⌘↵ to keep · Esc to clear · paste a link to save it
