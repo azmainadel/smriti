@@ -9,7 +9,9 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { type Item, type ItemCreate, type ItemDetail, type ItemPage, api, call, uploadFile } from "./api";
+import { useCallback } from "react";
+import { toaster } from "@/components/ui/toast";
+import { type Item, type ItemCreate, type ItemDetail, type ItemPage, type SearchOut, api, call, uploadFile } from "./api";
 
 export const keys = {
   feed: ["feed"] as const,
@@ -93,16 +95,47 @@ export function useUpdateItem(id: string) {
   });
 }
 
+/**
+ * Delete with a grace period: the item leaves the page at once, and the server delete runs
+ * only after the undo window closes. Undo puts the feed back as it was.
+ */
 export function useDeleteItem() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => call(api.DELETE("/items/{item_id}", { params: { path: { item_id: id } } })),
-    onSuccess: (_, id) => {
+  return useCallback(
+    (id: string) => {
+      const before = [...qc.getQueriesData({ queryKey: keys.feed }), ...qc.getQueriesData({ queryKey: ["search"] })];
+      const restore = () => before.forEach(([key, data]) => qc.setQueryData(key, data));
       removeFromFeed(qc, id);
-      qc.invalidateQueries({ queryKey: ["search"] });
-      qc.invalidateQueries({ queryKey: ["resurface"] });
+      qc.setQueriesData<SearchOut>({ queryKey: ["search"] }, (data) =>
+        data ? { ...data, hits: data.hits.filter((h) => h.item.id !== id) } : data,
+      );
+      let undone = false;
+      toaster.create({
+        title: "Deleted",
+        duration: 5000,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            undone = true;
+            restore();
+          },
+        },
+        onStatusChange: ({ status }) => {
+          if (status !== "unmounted" || undone) return;
+          void call(api.DELETE("/items/{item_id}", { params: { path: { item_id: id } } }))
+            .then(() => {
+              qc.invalidateQueries({ queryKey: ["search"] });
+              qc.invalidateQueries({ queryKey: ["resurface"] });
+            })
+            .catch((err) => {
+              restore();
+              toaster.create({ title: "Couldn't delete", description: String(err), type: "error" });
+            });
+        },
+      });
     },
-  });
+    [qc],
+  );
 }
 
 export function useRetry() {

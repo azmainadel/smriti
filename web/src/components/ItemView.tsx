@@ -269,13 +269,10 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
   const del = useDeleteItem();
   const retry = useRetry();
   const meta = item.meta as Meta;
-  const remove = () =>
-    del.mutate(item.id, {
-      onSuccess: () => {
-        toaster.create({ title: "Deleted", duration: 1800 });
-        onClose();
-      },
-    });
+  const remove = () => {
+    del(item.id);
+    onClose();
+  };
 
   return (
     <aside className="flex w-full flex-col bg-card lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:rounded-l-[22px] lg:shadow-[var(--shadow-panel)]">

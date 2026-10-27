@@ -8,7 +8,6 @@ import { NoteCard } from "@/components/NoteCard";
 import { ResurfaceStrip } from "@/components/ResurfaceStrip";
 import { SearchBar, removeChip } from "@/components/SearchBar";
 import { useShell } from "@/components/Shell";
-import { toaster } from "@/components/ui/toast";
 import type { Item } from "@/lib/api";
 import { useDeleteItem, useFeed, useRetry, useSearch } from "@/lib/queries";
 import { useHotkeys } from "@/lib/shortcuts";
@@ -48,10 +47,7 @@ function Home() {
   const del = useDeleteItem();
   const retry = useRetry();
 
-  const onDelete = useCallback(
-    (item: Item) => del.mutate(item.id, { onSuccess: () => toaster.create({ title: "Deleted", duration: 1800 }) }),
-    [del],
-  );
+  const onDelete = useCallback((item: Item) => del(item.id), [del]);
   const onRetry = useCallback((item: Item) => retry.mutate(item.id), [retry]);
   const onOpen = useCallback((item: Item) => openItem(item.id), [openItem]);
   const loadMore = useCallback(() => {
