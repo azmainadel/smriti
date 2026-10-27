@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { LogoMark } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/button";
 import { setToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
@@ -37,6 +38,7 @@ function Login() {
         }}
         className="w-full max-w-sm"
       >
+        <LogoMark className="mb-6 h-14 w-auto text-brand" />
         <h1 className="flex items-baseline gap-3 font-display text-5xl font-medium tracking-[-0.02em]">smriti<span lang="bn" className="text-xl font-normal text-accent">স্মৃতি</span></h1>
         <p className="mt-2 text-muted">Enter the owner secret from your server&apos;s .env. This device gets its own token, revocable from Settings.</p>
         <label className="mt-8 block text-sm font-medium" htmlFor="secret">

@@ -15,6 +15,7 @@ const ItemView = dynamic(() => import("./ItemView").then((m) => m.ItemView), { s
 const Composer = dynamic(() => import("./Composer").then((m) => m.Composer), { ssr: false });
 const ShortcutsHelp = dynamic(() => import("./ShortcutsHelp").then((m) => m.ShortcutsHelp), { ssr: false });
 import { MoonIcon, PlusIcon, SettingsIcon, SunIcon } from "./ui/icons";
+import { LogoMark } from "./ui/Logo";
 import { toaster } from "./ui/toast";
 
 type ShellApi = {
@@ -135,10 +136,13 @@ export function Shell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3 sm:h-16 sm:flex-nowrap sm:px-8 sm:pt-0">
-        <Link href="/" className="group flex items-baseline gap-2" aria-label="Smriti, everything">
-          <span className="font-display text-[25px] font-medium leading-none tracking-[-0.02em]">smriti</span>
-          <span lang="bn" className="text-[16px] leading-none text-accent">
-            স্মৃতি
+        <Link href="/" className="group flex items-center gap-2" aria-label="Smriti, everything">
+          <LogoMark className="h-[26px] w-auto text-brand transition-transform duration-500 ease-[var(--ease-out)] group-hover:-translate-y-0.5" />
+          <span className="flex items-baseline gap-2">
+            <span className="font-display text-[25px] font-medium leading-none tracking-[-0.02em]">smriti</span>
+            <span lang="bn" className="text-[16px] leading-none text-accent">
+              স্মৃতি
+            </span>
           </span>
         </Link>
         <nav className="no-scrollbar order-last -mx-1 flex w-full gap-1 overflow-x-auto sm:order-none sm:mx-auto sm:w-auto" aria-label="Views">
