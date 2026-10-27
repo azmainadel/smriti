@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSave } from "@/lib/queries";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/modal";
@@ -14,6 +14,14 @@ export function Composer({ open, onOpenChange }: { open: boolean; onOpenChange: 
   const [note, setNote] = useState("");
   const save = useSave();
   const isUrl = URL_RE.test(text.trim());
+  const picker = useRef<HTMLInputElement>(null);
+
+  const saveFiles = async (files: FileList) => {
+    onOpenChange(false);
+    const results = await Promise.allSettled([...files].map((f) => save.mutateAsync(f)));
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed) toaster.create({ title: `Couldn't save ${failed} of ${results.length} files`, type: "error" });
+  };
 
   const submit = async () => {
     const value = text.trim();
@@ -58,9 +66,13 @@ export function Composer({ open, onOpenChange }: { open: boolean; onOpenChange: 
             aria-label="Note"
           />
         )}
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted">{isUrl ? "Enter to save" : "⌘ Enter to save"}</p>
-          <Button type="submit" variant="primary" disabled={!text.trim() || save.isPending}>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="quiet" onClick={() => picker.current?.click()} className="-ml-3">
+            Add a file
+          </Button>
+          <input ref={picker} type="file" multiple hidden onChange={(e) => e.target.files?.length && void saveFiles(e.target.files)} />
+          <p className="ml-auto hidden text-xs text-muted sm:block">{isUrl ? "Enter to save" : "⌘ Enter to save"}</p>
+          <Button type="submit" variant="primary" className="max-sm:ml-auto" disabled={!text.trim() || save.isPending}>
             Save
           </Button>
         </div>
