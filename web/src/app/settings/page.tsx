@@ -56,24 +56,20 @@ function ModelRow({ step, models }: { step: string; models: Models }) {
   });
   const external = provider === "openai";
   return (
-    <tr className="border-t border-hairline">
-      <td className="py-2 pr-3 font-medium">{step}</td>
-      <td className="py-2 pr-3">
-        <select value={provider} onChange={(e) => setProvider(e.target.value)} className="rounded-lg border border-hairline bg-card px-2 py-1" aria-label={`${step} provider`}>
-          <option value="none">none (heuristics)</option>
-          <option value="ollama">ollama (local)</option>
-          <option value="openai">OpenAI-compatible API</option>
-        </select>
-      </td>
-      <td className="py-2 pr-3">
-        <input value={model} onChange={(e) => setModel(e.target.value)} className="w-48 rounded-lg border border-hairline bg-card px-2 py-1" aria-label={`${step} model`} />
-      </td>
-      <td className="py-2 pr-3">{external && <span className="rounded-full bg-accent-wash px-2 py-0.5 text-xs text-accent-ink">sends data off this machine</span>}</td>
-      <td className="py-2 text-right">
-        <Button onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>{" "}
+    <div className="grid grid-cols-2 items-center gap-2 border-t border-hairline py-3 sm:grid-cols-[7rem_13rem_1fr_auto] sm:gap-3">
+      <span className="col-span-2 font-medium sm:col-span-1">{step}</span>
+      <select value={provider} onChange={(e) => setProvider(e.target.value)} className="min-w-0 rounded-lg bg-card px-2 py-1.5 shadow-[var(--shadow-card)]" aria-label={`${step} provider`}>
+        <option value="none">none (heuristics)</option>
+        <option value="ollama">ollama (local)</option>
+        <option value="openai">OpenAI-compatible API</option>
+      </select>
+      <input value={model} onChange={(e) => setModel(e.target.value)} className="min-w-0 rounded-lg bg-card px-2 py-1.5 shadow-[var(--shadow-card)]" aria-label={`${step} model`} />
+      <span className="col-span-2 flex items-center justify-end gap-1 sm:col-span-1">
+        {external && <span className="mr-auto rounded-full bg-accent-wash px-2 py-0.5 text-xs text-accent-ink sm:mr-1">sends data off this machine</span>}
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>
         {step !== "query" && step !== "caption" && <Button variant="quiet" onClick={() => rerun.mutate()}>Re-run all</Button>}
-      </td>
-    </tr>
+      </span>
+    </div>
   );
 }
 
@@ -231,14 +227,10 @@ export default function SettingsPage() {
       <Section title="Models" description="Each step runs on a local model, an API, or plain heuristics. Nothing leaves this machine unless a step points at an external API.">
         {models.data && (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <tbody>
-                  {models.data.steps.map((s) => (
-                    <ModelRow key={s} step={s} models={models.data} />
-                  ))}
-                </tbody>
-              </table>
+            <div className="text-sm">
+              {models.data.steps.map((s) => (
+                <ModelRow key={s} step={s} models={models.data} />
+              ))}
             </div>
             <p className="mt-3 text-xs text-muted">
               Embeddings: {models.data.embeddings.provider}:{models.data.embeddings.model} ({models.data.embeddings.dim} dims), fixed per install.

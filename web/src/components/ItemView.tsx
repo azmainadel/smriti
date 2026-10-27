@@ -250,8 +250,8 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
 
   return (
     <aside className="flex w-full flex-col bg-card lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:rounded-l-[22px] lg:shadow-[var(--shadow-panel)]">
-      <div className="px-7 pb-6 pt-7">
-        <p className="font-display text-[26px] leading-[1.15]">{item.title ?? (item.type === "note" ? "Note" : item.url)}</p>
+      <div className={`px-7 pt-7 ${item.title || item.url || item.status === "failed" ? "pb-6" : "hidden lg:block lg:pb-0"}`}>
+        {item.title && <p className="font-display text-[26px] leading-[1.15]">{item.title}</p>}
         {item.url && (
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-accent-ink">
             {hostOf(item.url)} <ExternalIcon size={12} />
@@ -419,7 +419,7 @@ export function ItemView({ id, onClose, onNavigate, onOpenItem }: Props) {
               </div>
             )}
           </div>
-          <motion.div key={id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="-mt-[72px] min-h-full">
+          <motion.div key={id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="min-h-full lg:-mt-[72px]">
             {isError ? (
               <p className="pt-40 text-center text-muted">This item is gone.</p>
             ) : item ? (
