@@ -70,20 +70,48 @@ def extractive_summary(text: str, description: str | None = None) -> tuple[str, 
     return summary[:400], points
 
 
+# Words frequent in any text that say nothing about a topic. Kept out of tags only;
+# summaries still use them to score sentences.
+GENERIC = frozenset(
+    """
+    don doesn didn isn wasn aren won wouldn couldn shouldn haven hasn hadn ll ve re
+    often always never sometimes usually probably maybe perhaps quite rather simply actually
+    want wants wanted need needs needed seem seems seemed seen try tried trying get gets got
+    going go goes went come comes came give gives gave take takes took put puts keep keeps
+    know knows knew think thinks thought feel feels felt look looks looked find finds found
+    tell tells told ask asks asked work works working worked call called mean means meant
+    best better good bad big small large long short high low new old right wrong real true
+    able kind sort part lot lots bit thing things something anything everything nothing
+    someone anyone everyone people person way ways day days time times year years
+    first second last next different same other others another every each many few much
+    important possible likely clear hard easy sure whole enough less least most more
+    start started starts end ended begin began made make makes making use used uses using
+    said says say saying let lets help helps hand case point fact idea ideas example
+    done built interested become became include includes including called known based
+    citation citations retrieved archived original edit isbn wikipedia pdf page pages
+    """.split()
+)
+
+
 def keyword_tags(title: str, text: str, limit: int = 6) -> list[str]:
     freqs = _freqs(f"{title} {title} {title} {text[:30_000]}")
+    for word in GENERIC:
+        freqs.pop(word, None)
     bigrams: Counter[str] = Counter()
     words = [w.lower() for w in _WORD.findall(text[:30_000])]
     for a, b in zip(words, words[1:], strict=False):
-        if a not in STOPWORDS and b not in STOPWORDS and len(a) > 2 and len(b) > 2:
+        if a not in STOPWORDS | GENERIC and b not in STOPWORDS | GENERIC and len(a) > 2 and len(b) > 2:
             bigrams[f"{a} {b}"] += 1
     candidates = [(w, c) for w, c in freqs.most_common(40) if not w.isdigit()]
     candidates += [(b, c * 2) for b, c in bigrams.most_common(10) if c >= 3]
     ranked = sorted(candidates, key=lambda x: -x[1])
     tags: list[str] = []
+    seen: set[str] = set()
     for word, _ in ranked:
         tag = normalize_tag(word)
-        if tag and tag not in tags:
+        stem = "-".join(p.rstrip("s") for p in tag.split("-"))  # gardens and garden are one tag
+        if tag and stem not in seen:
+            seen.add(stem)
             tags.append(tag)
     # A two-word tag makes its parts redundant: keep "japanese-carpentry", drop "carpentry".
     parts = {p for t in tags if "-" in t for p in t.split("-")}
