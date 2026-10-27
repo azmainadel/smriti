@@ -118,7 +118,8 @@
   color: var(--color-ink);
   max-width: 64ch;
 }
-.prose-reader > * + * { margin-top: 1.05em; }
+/* Space blocks at any depth: extracted pages often wrap their paragraphs in divs. */
+.prose-reader :where(p, ul, ol, blockquote, pre, figure, table, img, h1, h2, h3, h4) { margin-bottom: 1.05em; }
 .prose-reader h1, .prose-reader h2, .prose-reader h3, .prose-reader h4 {
   font-family: var(--font-sans);
   font-weight: 600;
