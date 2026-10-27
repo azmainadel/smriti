@@ -213,6 +213,7 @@ async def test_failed_item_keeps_data_and_retries(client: AsyncClient) -> None:
 async def test_resurface_and_related(client: AsyncClient) -> None:
     from datetime import UTC, datetime, timedelta
 
+    from sqlalchemy import text as sql
     from sqlalchemy import update
 
     from smriti.db import get_sessionmaker
@@ -257,6 +258,14 @@ async def test_resurface_and_related(client: AsyncClient) -> None:
 
     walk = (await client.get("/resurface", params={"surface": "serendipity"})).json()["items"]
     assert walk and all(p["reason"] for p in walk)
+    # A walk is not a showing: it must not crowd items out of tomorrow's walk or digest.
+    async with get_sessionmaker()() as s:
+        await s.execute(
+            sql("UPDATE events SET at = at - interval '1 day' WHERE kind = 'resurface'")
+        )
+        await s.commit()
+    again = (await client.get("/resurface", params={"surface": "serendipity"})).json()["items"]
+    assert {p["item"]["id"] for p in again} == {p["item"]["id"] for p in walk}
 
     r = await client.post("/events", json={"item_id": home[0]["item"]["id"], "kind": "dismiss"})
     assert r.status_code == 204

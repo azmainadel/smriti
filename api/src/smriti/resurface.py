@@ -230,12 +230,13 @@ async def score_candidates(
     *,
     min_age: timedelta = timedelta(days=2),
     include_recent: bool = False,
+    skip_shown: bool = True,
 ) -> list[Pick]:
-    """Score items for resurfacing. The strip and digest skip what was just saved; a
-    serendipity walk may include it."""
+    """Score items for resurfacing. The strip and digest skip what was just saved and what
+    they showed in the last two weeks; a serendipity walk may include both."""
     ctx = await _context(session, now)
     related = await _related_to_recent(session, ctx)
-    excluded = await _shown_before_today(session, now) | (
+    excluded = (await _shown_before_today(session, now) if skip_shown else set()) | (
         set() if include_recent else set(ctx.recent_ids)
     )
 
@@ -377,14 +378,21 @@ async def digest(
 async def serendipity(
     session: AsyncSession, now: datetime | None = None, n: int = 24
 ) -> list[Pick]:
-    """A slow walk through the library: mostly things not seen in a long time."""
+    """A slow walk through the library: mostly things not seen in a long time.
+
+    Nothing is logged as shown: the page fetches a whole walk but the user may look at one
+    item, and logging all of them would hide them from the strip and digest for two weeks.
+    """
     now = now or datetime.now(UTC)
     scored = await score_candidates(
-        session, now, weights=(0.2, 0.6, 0.2), min_age=timedelta(0), include_recent=True
+        session,
+        now,
+        weights=(0.2, 0.6, 0.2),
+        min_age=timedelta(0),
+        include_recent=True,
+        skip_shown=False,
     )
-    picks = diversify(scored, n)
-    await _log_shown(session, picks, "serendipity", now)
-    return picks
+    return diversify(scored, n)
 
 
 async def on_this_day(
