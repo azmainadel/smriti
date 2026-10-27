@@ -248,7 +248,7 @@ export default function SettingsPage() {
       </Section>
 
       <Section title="Capture">
-        <ul className="space-y-3 text-sm text-ink-2">
+        <ul className="space-y-3 text-sm text-ink-2 [&_code]:break-all">
           <li><strong className="text-ink">Browser extension:</strong> load <code>extension/</code> in Chrome or Firefox, then paste the API URL and a token in its options.</li>
           <li><strong className="text-ink">Android:</strong> install this site as an app (browser menu → Install). It then appears in the share sheet.</li>
           <li><strong className="text-ink">iPhone:</strong> make a Shortcut that runs “Get Contents of URL” with POST <code>{API_URL}/items</code>, header <code>Authorization: Bearer &lt;token&gt;</code>, JSON body <code>{"{"}&quot;url&quot;: Shortcut Input{"}"}</code>, and enable it in the share sheet.</li>
