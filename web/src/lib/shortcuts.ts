@@ -36,6 +36,11 @@ export function useHotkeys(map: Record<string, (e: KeyboardEvent) => void>, enab
         return;
       }
       // Ark dialogs and open menus own their keys (Escape closes them, it should not also navigate).
+      // Escape leaves a text field first; the next Escape reaches the page.
+      if (e.key === "Escape" && typing(e.target)) {
+        (e.target as HTMLElement).blur();
+        return;
+      }
       if (e.altKey || typing(e.target) || document.querySelector('[data-scope="dialog"][role="dialog"], [data-scope="menu"][data-state="open"]')) return;
       const handler = ref.current[e.key];
       if (handler) {
