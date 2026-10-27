@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from smriti.pipeline.extractors.article import extract_article, strip_site_suffix
+from smriti.pipeline.extractors.html import clean_layout
 from smriti.pipeline.extractors.pdf import parse_pdf
 from smriti.pipeline.extractors.simple import extract_note, palette_from_url
 from smriti.pipeline.extractors.tweet import _thread_from_page
@@ -127,3 +128,17 @@ def test_site_suffix_leaves_titles() -> None:
         == "How it works"
     )
     assert strip_site_suffix("Rust vs Go - a comparison", None, wiki) == "Rust vs Go - a comparison"
+
+
+def test_body_does_not_repeat_title_or_lead() -> None:
+    base = "https://en.wikipedia.org/wiki/Roof"
+    doc = (
+        '<h2>Japanese carpentry</h2><figure><img src="/t/1/1a/Roof.png/250px-Roof.png">'
+        "<figcaption>A roof</figcaption></figure><p>Body text.</p>"
+        '<h2>History</h2><img src="/t/other.png">'
+    )
+    out = clean_layout(
+        doc, base, title="Japanese carpentry", lead="https://x.org/t/1/1a/Roof.png/1200px-Roof.png"
+    )
+    assert "Japanese carpentry" not in out and "Roof.png" not in out and "A roof" not in out
+    assert "History" in out and "other.png" in out and "Body text." in out

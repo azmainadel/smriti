@@ -4,7 +4,7 @@ import html as htmllib
 import json
 import re
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from lxml import html as lxml_html
 
@@ -119,13 +119,21 @@ _CONTENT = (
 _SPACER = re.compile(r"(spacer|trans_1x1|pixel|blank)\.(gif|png)", re.I)
 
 
-def clean_layout(doc: str, base: str, drop_images: set[str] | frozenset[str] = frozenset()) -> str:
+def clean_layout(
+    doc: str,
+    base: str,
+    drop_images: set[str] | frozenset[str] = frozenset(),
+    title: str | None = None,
+    lead: str | None = None,
+) -> str:
     """Undo old-web page layout inside extracted HTML.
 
     Tables that hold paragraphs or images are layout, not data: unwrap them so the reader
-    styles the text as prose. Images that turned out to be icons, spacers or banners go.
+    styles the text as prose. Images that turned out to be icons, spacers or banners go, and
+    so do an opening heading and image that repeat the title and lead shown above the body.
     """
     tree = parse(f"<div>{doc}</div>")
+    _drop_repeats(tree, base, title, lead)
     for img in tree.xpath("//img"):
         src = urljoin(base, img.get("src") or "")
         if not img.get("src") or src in drop_images or _SPACER.search(src):
@@ -143,6 +151,32 @@ def clean_layout(doc: str, base: str, drop_images: set[str] | frozenset[str] = f
         table.drop_tree()
     lead = htmllib.escape(tree.text or "")
     return lead + "".join(lxml_html.tostring(child, encoding="unicode") for child in tree)
+
+
+def _image_name(url: str) -> str:
+    """The file name without a size prefix, so 1200px-Roof.png and 250px-Roof.png match."""
+    return re.sub(r"^\d+px-", "", urlsplit(url).path.rsplit("/", 1)[-1]).lower()
+
+
+def _drop_repeats(tree, base: str, title: str | None, lead: str | None) -> None:  # noqa: ANN001
+    first = next((el for el in tree.iter("p", "h1", "h2", "h3") if el.text_content().strip()), None)
+    if (
+        first is not None
+        and first.tag != "p"
+        and title
+        and _squash(first.text_content()) == _squash(title)
+    ):
+        first.drop_tree()
+    if lead:
+        for img in tree.iter("img"):
+            if _image_name(urljoin(base, img.get("src") or "")) == _image_name(lead):
+                figure = next((a for a in img.iterancestors("figure")), None)
+                (figure if figure is not None else img).drop_tree()
+            break  # only the opening image can be a repeat of the lead
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\W+", " ", text).strip().lower()
 
 
 def image_srcs(doc: str, base: str, limit: int = 12) -> list[str]:

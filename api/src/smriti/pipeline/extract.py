@@ -81,11 +81,12 @@ async def _download_image(client: httpx.AsyncClient, url: str) -> bytes | None:
         return None
 
 
-async def _collect_images(ex: Extraction) -> tuple[list[Image], set[str]]:
-    """Download candidate images. Returns the keepers and the URLs that turned out to be
-    icons, spacers, banners or broken, so the article HTML can drop them too."""
+async def _collect_images(ex: Extraction) -> tuple[list[Image], set[str], str | None]:
+    """Download candidate images. Returns the keepers, the URLs that turned out to be icons,
+    spacers, banners or broken (so the article HTML can drop them too), and the lead's URL."""
     images = list(ex.images)
     rejected: set[str] = set()
+    lead_url = None
     if ex.image_urls:
         s = get_settings()
         urls = ex.image_urls[: MAX_IMAGES * 2]
@@ -96,7 +97,9 @@ async def _collect_images(ex: Extraction) -> tuple[list[Image], set[str]]:
         kind = "keyframe" if ex.type == ItemType.video else "image"
         images += [Image(d, kind=kind) for d in downloaded if d]
         rejected = {u for u, d in zip(urls, downloaded, strict=True) if not d}
-    return images[:MAX_IMAGES], rejected
+        if not ex.images:
+            lead_url = next((u for u, d in zip(urls, downloaded, strict=True) if d), None)
+    return images[:MAX_IMAGES], rejected, lead_url
 
 
 async def extract(ctx: StepContext) -> None:
@@ -125,9 +128,15 @@ async def extract(ctx: StepContext) -> None:
     # Re-running extract replaces the asset set; storage keys are positional so blobs are overwritten.
     await ctx.session.execute(delete(Asset).where(Asset.item_id == item.id))
     item.assets = []
-    images, rejected = await _collect_images(ex)
+    images, rejected, lead_url = await _collect_images(ex)
     if content.html:
-        content.html = clean_layout(content.html, item.source_url or "", drop_images=rejected)
+        content.html = clean_layout(
+            content.html,
+            item.source_url or "",
+            drop_images=rejected,
+            title=item.title,
+            lead=lead_url,
+        )
     item.lead_image_key = None
     for i, img in enumerate(images):
         data = await asyncio.to_thread(thumbnail, img.data, 1600)
