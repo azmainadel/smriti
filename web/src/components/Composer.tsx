@@ -41,7 +41,7 @@ export function Composer({ open, onOpenChange }: { open: boolean; onOpenChange: 
         }}
       >
         <textarea
-          autoFocus
+          data-autofocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={isUrl ? 1 : 6}

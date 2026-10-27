@@ -18,7 +18,14 @@ type ModalProps = {
 
 export function Modal({ open, onOpenChange, title, hideTitle, children, className = "", top }: ModalProps) {
   return (
-    <Dialog.Root open={open} onOpenChange={(d) => onOpenChange(d.open)} lazyMount unmountOnExit>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(d) => onOpenChange(d.open)}
+      // Focus the field marked data-autofocus, not the first button (which is the close X).
+      initialFocusEl={() => document.querySelector<HTMLElement>("[data-autofocus]")}
+      lazyMount
+      unmountOnExit
+    >
       <Portal>
         <Dialog.Backdrop className="fixed inset-0 z-40 bg-canvas/70 backdrop-blur-xl" />
         <Dialog.Positioner className={`fixed inset-0 z-50 flex justify-center px-4 ${top ? "items-start pt-[12vh]" : "items-center"}`}>
