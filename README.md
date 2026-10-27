@@ -1,7 +1,8 @@
-<h1 align="center">smriti · স্মৃতি</h1>
+<p align="center">
+  <img src="docs/banner.webp" alt="smriti: a quiet place for everything you save" width="100%">
+</p>
 
 <p align="center">
-  <em>A quiet place for everything you save.</em><br>
   Links, articles, tweets, videos, PDFs, images, quotes and notes, found again by what they were about.<br>
   Self-hosted. One user. Nothing leaves your machine unless you say so.
 </p>
