@@ -55,18 +55,26 @@ function ModelRow({ step, models }: { step: string; models: Models }) {
     onSuccess: (r) => toaster.create({ title: `Queued ${r.enqueued} items for ${step}` }),
   });
   const external = provider === "openai";
+  const dirty = provider !== current.provider || model !== current.model;
   return (
-    <div className="grid grid-cols-2 items-center gap-2 border-t border-hairline py-3 sm:grid-cols-[7rem_13rem_1fr_auto] sm:gap-3">
+    <div className="grid grid-cols-2 items-center gap-2 border-t border-hairline py-3 sm:grid-cols-[7rem_13rem_1fr_10.5rem] sm:gap-3">
       <span className="col-span-2 font-medium sm:col-span-1">{step}</span>
       <select value={provider} onChange={(e) => setProvider(e.target.value)} className="min-w-0 rounded-lg bg-card px-2 py-1.5 shadow-[var(--shadow-card)]" aria-label={`${step} provider`}>
         <option value="none">none (heuristics)</option>
         <option value="ollama">ollama (local)</option>
         <option value="openai">OpenAI-compatible API</option>
       </select>
-      <input value={model} onChange={(e) => setModel(e.target.value)} className="min-w-0 rounded-lg bg-card px-2 py-1.5 shadow-[var(--shadow-card)]" aria-label={`${step} model`} />
-      <span className="col-span-2 flex items-center justify-end gap-1 sm:col-span-1">
+      <input
+        value={provider === "none" ? "" : model}
+        onChange={(e) => setModel(e.target.value)}
+        disabled={provider === "none"}
+        placeholder={provider === "none" ? "no model needed" : "model name"}
+        className="min-w-0 rounded-lg bg-card px-2 py-1.5 shadow-[var(--shadow-card)] disabled:bg-transparent disabled:shadow-none disabled:placeholder:text-hint"
+        aria-label={`${step} model`}
+      />
+      <span className="col-span-2 flex items-center justify-end gap-1 sm:col-span-1 sm:justify-start">
         {external && <span className="mr-auto rounded-full bg-accent-wash px-2 py-0.5 text-xs text-accent-ink sm:mr-1">sends data off this machine</span>}
-        <Button onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>
+        <Button onClick={() => save.mutate()} disabled={!dirty || save.isPending}>Save</Button>
         {step !== "query" && step !== "caption" && <Button variant="quiet" onClick={() => rerun.mutate()}>Re-run all</Button>}
       </span>
     </div>
@@ -165,7 +173,7 @@ function Health() {
             <tbody>
               {data.enrichment.map((r) => (
                 <tr key={r.step} className="border-t border-hairline">
-                  <td className="py-1.5">{r.step}</td><td className="text-muted">{r.model ?? "–"}</td><td className="text-right">{r.runs}</td><td className="text-right">{r.avg_ms} ms</td><td className="text-right">{Math.round(r.p95_ms)} ms</td><td className="text-right">{r.avg_tokens}</td><td className="text-right">${r.total_cost.toFixed(4)}</td><td className="text-right">{r.errors}</td>
+                  <td className="py-1.5">{r.step}</td><td className="text-muted">{r.model ?? "–"}</td><td className="text-right">{r.runs}</td><td className="text-right">{r.avg_ms} ms</td><td className="text-right">{Math.round(r.p95_ms)} ms</td><td className="text-right">{r.avg_tokens}</td><td className="text-right">{r.total_cost ? `$${r.total_cost.toFixed(4)}` : "–"}</td><td className="text-right">{r.errors}</td>
                 </tr>
               ))}
             </tbody>
@@ -257,9 +265,12 @@ export default function SettingsPage() {
       </Section>
 
       <Section title="Weekly digest">
-        <label className="flex items-center gap-3 text-sm">
-          <input type="checkbox" checked={digest.data?.email ?? false} onChange={(e) => setDigest.mutate(e.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" />
-          Email me 7 items from my past every week (needs SMTP settings on the server). The digest is always at <a className="text-accent-ink underline" href="/digest">/digest</a>.
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" checked={digest.data?.email ?? false} onChange={(e) => setDigest.mutate(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-accent)]" />
+          <span>
+            Email me 7 items from my past every week (needs SMTP settings on the server). The digest is always at{" "}
+            <a className="text-accent-ink underline" href="/digest">Look back</a>.
+          </span>
         </label>
       </Section>
 
