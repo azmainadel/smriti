@@ -166,14 +166,14 @@ function Health() {
       <div>
         <h3 className="mb-2 font-medium">Enrichment, last 30 days</h3>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full whitespace-nowrap [&_td+td]:pl-3 [&_th+th]:pl-3">
             <thead className="text-left text-xs text-muted">
-              <tr><th className="py-1">Step</th><th>Model</th><th className="text-right">Runs</th><th className="text-right">Avg</th><th className="text-right">p95</th><th className="text-right">Tokens</th><th className="text-right">Cost</th><th className="text-right">Errors</th></tr>
+              <tr><th className="py-1">Step</th><th className="hidden sm:table-cell">Model</th><th className="text-right">Runs</th><th className="text-right">Avg</th><th className="text-right">p95</th><th className="hidden text-right sm:table-cell">Tokens</th><th className="hidden text-right sm:table-cell">Cost</th><th className="text-right">Errors</th></tr>
             </thead>
             <tbody>
               {data.enrichment.map((r) => (
                 <tr key={r.step} className="border-t border-hairline">
-                  <td className="py-1.5">{r.step}</td><td className="text-muted">{r.model ?? "–"}</td><td className="text-right">{r.runs}</td><td className="text-right">{r.avg_ms} ms</td><td className="text-right">{Math.round(r.p95_ms)} ms</td><td className="text-right">{r.avg_tokens}</td><td className="text-right">{r.total_cost ? `$${r.total_cost.toFixed(4)}` : "–"}</td><td className="text-right">{r.errors}</td>
+                  <td className="py-1.5">{r.step}</td><td className="hidden text-muted sm:table-cell">{r.model ?? "–"}</td><td className="text-right">{r.runs}</td><td className="text-right">{r.avg_ms} ms</td><td className="text-right">{Math.round(r.p95_ms)} ms</td><td className="hidden text-right sm:table-cell">{r.avg_tokens}</td><td className="hidden text-right sm:table-cell">{r.total_cost ? `$${r.total_cost.toFixed(4)}` : "–"}</td><td className="text-right">{r.errors}</td>
                 </tr>
               ))}
             </tbody>
