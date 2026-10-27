@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="options">
+  <h1>Smriti</h1>
+  <p class="hint">Create a token in Smriti → Settings → Devices, then paste it here.</p>
+  <form id="form">
+    <label>API URL <input id="apiUrl" type="url" placeholder="http://localhost:8000" required></label>
+    <label>Token <input id="token" type="password" placeholder="smr_…" required></label>
+    <button type="submit">Save and test</button>
+    <p id="status" role="status"></p>
+  </form>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

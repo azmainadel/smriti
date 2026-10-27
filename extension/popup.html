@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="popup">
+  <form id="form">
+    <div class="preview">
+      <img id="favicon" alt="" width="16" height="16">
+      <div>
+        <p id="title" class="title">…</p>
+        <p id="url" class="url"></p>
+      </div>
+    </div>
+    <blockquote id="selection" hidden></blockquote>
+    <textarea id="note" rows="3" placeholder="Add a note (Enter to save, Shift+Enter for a new line)" autofocus></textarea>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="asQuote"> Save selection as a quote</label>
+      <button type="submit" id="save">Save</button>
+    </div>
+    <p id="status" role="status"></p>
+  </form>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

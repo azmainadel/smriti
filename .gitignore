@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+.env
+.data/
+coverage/
+next-env.d.ts

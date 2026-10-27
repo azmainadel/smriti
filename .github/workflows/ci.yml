@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: api
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - run: psql -h localhost -U postgres -c "CREATE DATABASE smriti_test" -c "CREATE DATABASE smriti_eval"
+      - run: uv sync --extra ocr --frozen
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run pytest -q
+      - name: OpenAPI schema is up to date
+        run: |
+          uv run python scripts/export_openapi.py /tmp/openapi.json
+          diff -u ../web/src/lib/openapi.json /tmp/openapi.json
+      - uses: actions/cache@v4
+        with:
+          path: /tmp/fastembed_cache
+          key: fastembed-bge-small-en-v1.5
+      - name: Search quality (recall@10 and MRR on the eval set)
+        env:
+          SMRITI_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/smriti_eval
+          SMRITI_STORAGE_DIR: /tmp/smriti-eval
+          FASTEMBED_CACHE_PATH: /tmp/fastembed_cache
+          SMRITI_LOG_LEVEL: WARNING
+        run: |
+          uv run smriti migrate
+          uv run smriti eval --load --min-recall 0.95 --min-mrr 0.75 --out eval-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report
+          path: api/eval-report.json
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Generated API types are up to date
+        run: npm run gen:api && git diff --exit-code src/lib/schema.d.ts
+      - run: npm run typecheck
+      - run: npm run build
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -c "import json; json.load(open('extension/manifest.json'))"
+      - run: cd extension && zip -r ../smriti-extension.zip . -x README.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smriti-extension
+          path: smriti-extension.zip

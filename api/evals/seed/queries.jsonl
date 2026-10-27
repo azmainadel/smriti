@@ -1,0 +1,70 @@
+{"q": "japanese carpentry", "targets": ["carpentry"], "kind": "keyword"}
+{"q": "the long read on Japanese carpentry", "targets": ["carpentry"], "kind": "vague"}
+{"q": "joinery without nails", "targets": ["carpentry"], "kind": "paraphrase"}
+{"q": "that blue chart about retention", "targets": ["retention-chart"], "kind": "vague"}
+{"q": "churn cohorts", "targets": ["retention-chart"], "kind": "paraphrase"}
+{"q": "hnsw", "targets": ["hnsw"], "kind": "keyword"}
+{"q": "approximate nearest neighbour search", "targets": ["hnsw", "pq"], "kind": "keyword"}
+{"q": "compressing embeddings to save memory", "targets": ["pq"], "kind": "paraphrase"}
+{"q": "sourdough starter", "targets": ["sourdough"], "kind": "keyword"}
+{"q": "bread recipe with a crackling crust", "targets": ["sourdough"], "kind": "paraphrase"}
+{"q": "espresso tastes sour", "targets": ["espresso"], "kind": "paraphrase"}
+{"q": "coffee grind", "targets": ["espresso"], "kind": "keyword"}
+{"q": "how long should lines of text be", "targets": ["typography"], "kind": "paraphrase"}
+{"q": "serif fonts for reading", "targets": ["typography"], "kind": "paraphrase"}
+{"q": "spaced repetition", "targets": ["spaced-repetition"], "kind": "keyword"}
+{"q": "flashcards", "targets": ["spaced-repetition"], "kind": "note"}
+{"q": "remembering things long term", "targets": ["spaced-repetition", "sleep"], "kind": "paraphrase"}
+{"q": "marathon training plan", "targets": ["marathon"], "kind": "keyword"}
+{"q": "running a long race", "targets": ["marathon"], "kind": "paraphrase"}
+{"q": "marcus aurelius", "targets": ["stoicism"], "kind": "keyword"}
+{"q": "stoic philosophy", "targets": ["stoicism"], "kind": "paraphrase"}
+{"q": "dns outage postmortem", "targets": ["kubernetes-outage"], "kind": "keyword"}
+{"q": "checkout went down", "targets": ["kubernetes-outage"], "kind": "paraphrase"}
+{"q": "rust borrow checker", "targets": ["rust-ownership"], "kind": "keyword"}
+{"q": "memory safety without garbage collection", "targets": ["rust-ownership"], "kind": "paraphrase"}
+{"q": "watercolor", "targets": ["watercolor"], "kind": "keyword"}
+{"q": "painting landscapes", "targets": ["watercolor"], "kind": "paraphrase"}
+{"q": "bonsai juniper", "targets": ["bonsai"], "kind": "keyword"}
+{"q": "tiny trees", "targets": ["bonsai"], "kind": "paraphrase"}
+{"q": "index funds", "targets": ["index-funds"], "kind": "keyword"}
+{"q": "passive investing", "targets": ["index-funds"], "kind": "paraphrase"}
+{"q": "sleep and memory", "targets": ["sleep"], "kind": "keyword"}
+{"q": "bouldering footwork", "targets": ["climbing"], "kind": "keyword"}
+{"q": "rock climbing technique", "targets": ["climbing"], "kind": "paraphrase"}
+{"q": "trees cool cities", "targets": ["urban-trees"], "kind": "keyword"}
+{"q": "heat waves and shade", "targets": ["urban-trees"], "kind": "paraphrase"}
+{"q": "evaluating llm apps", "targets": ["llm-eval"], "kind": "keyword"}
+{"q": "judge by numbers not vibes", "targets": ["llm-eval"], "kind": "keyword"}
+{"q": "rag chunking", "targets": ["rag"], "kind": "keyword"}
+{"q": "reranker", "targets": ["rag"], "kind": "keyword"}
+{"q": "hot sauce", "targets": ["fermentation"], "kind": "keyword"}
+{"q": "fermenting chillies", "targets": ["fermentation"], "kind": "paraphrase"}
+{"q": "zen garden", "targets": ["japanese-garden"], "kind": "paraphrase"}
+{"q": "raked gravel", "targets": ["japanese-garden"], "kind": "keyword"}
+{"q": "keyboard switches", "targets": ["mechanical-keyboards"], "kind": "keyword"}
+{"q": "git reflog", "targets": ["git-rebase"], "kind": "keyword"}
+{"q": "squash commits", "targets": ["git-rebase"], "kind": "paraphrase"}
+{"q": "pottery wheel", "targets": ["pottery"], "kind": "keyword"}
+{"q": "ice bath recovery", "targets": ["cold-plunge"], "kind": "paraphrase"}
+{"q": "complementary colors", "targets": ["color-theory"], "kind": "keyword"}
+{"q": "orange and navy", "targets": ["color-theory"], "kind": "keyword"}
+{"q": "postgres bloat", "targets": ["postgres-vacuum"], "kind": "keyword"}
+{"q": "birdsong", "targets": ["birdwatching"], "kind": "paraphrase"}
+{"q": "warblers", "targets": ["birdwatching"], "kind": "keyword"}
+{"q": "decluttering", "targets": ["minimalism"], "kind": "paraphrase"}
+{"q": "dijkstra quote", "targets": ["quote-dijkstra"], "kind": "keyword"}
+{"q": "simplicity and reliability", "targets": ["quote-dijkstra"], "kind": "keyword"}
+{"q": "quotes", "targets": ["quote-dijkstra"], "kind": "filter"}
+{"q": "gift for mum", "targets": ["note-gift"], "kind": "keyword"}
+{"q": "present ideas for my mother", "targets": ["note-gift"], "kind": "paraphrase"}
+{"q": "shed project", "targets": ["note-shed", "carpentry"], "kind": "note"}
+{"q": "half-lap joint", "targets": ["note-shed"], "kind": "keyword"}
+{"q": "pizza crust", "targets": ["nyc-pizza"], "kind": "keyword"}
+{"q": "solar panels payback", "targets": ["solar"], "kind": "keyword"}
+{"q": "vim text objects", "targets": ["vim"], "kind": "keyword"}
+{"q": "editor shortcuts", "targets": ["vim"], "kind": "paraphrase"}
+{"q": "notes from the past 2 weeks about tools", "targets": ["note-shed"], "kind": "filter"}
+{"q": "board deck", "targets": ["retention-chart"], "kind": "note"}
+{"q": "things about memory from the past 6 months", "targets": ["spaced-repetition", "sleep"], "kind": "filter"}
+{"q": "cooking", "targets": ["sourdough", "fermentation", "nyc-pizza"], "kind": "vague"}

@@ -1,0 +1,193 @@
+"""Shared HTML helpers: metadata, JSON-LD, lazy images, plain text to structured HTML."""
+
+import html as htmllib
+import json
+import re
+from typing import Any
+from urllib.parse import urljoin, urlsplit
+
+from lxml import html as lxml_html
+
+_LAZY_ATTRS = ("data-src", "data-lazy-src", "data-original", "data-lazy", "data-url")
+
+
+def parse(doc: str) -> Any:
+    return lxml_html.fromstring(doc or "<html></html>")
+
+
+def meta(tree: Any) -> dict[str, str]:
+    """OpenGraph, Twitter card and standard meta tags, first value wins."""
+    out: dict[str, str] = {}
+    for el in tree.iterfind(".//meta"):
+        key = (el.get("property") or el.get("name") or el.get("itemprop") or "").strip().lower()
+        value = (el.get("content") or "").strip()
+        if key and value and key not in out:
+            out[key] = value
+    return out
+
+
+def canonical_link(tree: Any, base: str) -> str | None:
+    for el in tree.iterfind(".//link"):
+        if (el.get("rel") or "").lower() == "canonical" and el.get("href"):
+            return urljoin(base, el.get("href"))
+    return None
+
+
+def json_ld(tree: Any) -> list[dict[str, Any]]:
+    """Every JSON-LD object on the page, with @graph containers flattened."""
+    found: list[dict[str, Any]] = []
+    for el in tree.iterfind('.//script[@type="application/ld+json"]'):
+        try:
+            data = json.loads(el.text or "")
+        except (json.JSONDecodeError, TypeError):
+            continue
+        stack = data if isinstance(data, list) else [data]
+        while stack:
+            node = stack.pop(0)
+            if isinstance(node, dict):
+                found.append(node)
+                if isinstance(node.get("@graph"), list):
+                    stack.extend(node["@graph"])
+            elif isinstance(node, list):
+                stack.extend(node)
+    return found
+
+
+def ld_type(node: dict[str, Any]) -> set[str]:
+    t = node.get("@type", [])
+    return {str(x).lower() for x in (t if isinstance(t, list) else [t])}
+
+
+def fix_lazy_images(doc: str) -> str:
+    """Promote lazy-load attributes to src so extractors see the real images."""
+    tree = parse(doc)
+    for img in tree.iterfind(".//img"):
+        src = img.get("src") or ""
+        if not src or src.startswith("data:") or "placeholder" in src or "blank" in src:
+            for attr in _LAZY_ATTRS:
+                if img.get(attr):
+                    img.set("src", img.get(attr))
+                    break
+            else:
+                if srcset := img.get("srcset") or img.get("data-srcset"):
+                    img.set("src", srcset.split(",")[-1].strip().split(" ")[0])
+    for noscript in tree.iterfind(".//noscript"):
+        noscript.drop_tag()
+    return lxml_html.tostring(tree, encoding="unicode")
+
+
+def text_to_html(text: str, heading: str | None = None) -> str:
+    parts = [f"<h2>{htmllib.escape(heading)}</h2>"] if heading else []
+    for para in re.split(r"\n\s*\n", text.strip()):
+        if para.strip():
+            parts.append(f"<p>{htmllib.escape(para.strip()).replace(chr(10), '<br>')}</p>")
+    return "\n".join(parts)
+
+
+def html_to_text(doc: str) -> str:
+    tree = parse(doc)
+    for el in tree.iterfind(".//br"):
+        el.tail = "\n" + (el.tail or "")
+    tags = ("h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "blockquote", "pre", "figcaption", "td")
+    blocks = []
+    for el in tree.iter(*tags):
+        # Take the innermost blocks only: a table cell or list item that wraps paragraphs
+        # would otherwise glue them together ("July 2023If you...") and repeat them.
+        if any(d.tag in tags for d in el.iterdescendants()):
+            continue
+        text = el.text_content().strip()
+        if text:
+            blocks.append(text)
+    return "\n\n".join(blocks) if blocks else tree.text_content().strip()
+
+
+_CONTENT = (
+    "p",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "pre",
+    "ul",
+    "ol",
+    "img",
+    "figure",
+)
+_SPACER = re.compile(r"(spacer|trans_1x1|pixel|blank)\.(gif|png)", re.I)
+
+
+def clean_layout(
+    doc: str,
+    base: str,
+    drop_images: set[str] | frozenset[str] = frozenset(),
+    title: str | None = None,
+    lead: str | None = None,
+) -> str:
+    """Undo old-web page layout inside extracted HTML.
+
+    Tables that hold paragraphs or images are layout, not data: unwrap them so the reader
+    styles the text as prose. Images that turned out to be icons, spacers or banners go, and
+    so do an opening heading and image that repeat the title and lead shown above the body.
+    """
+    tree = parse(f"<div>{doc}</div>")
+    _drop_repeats(tree, base, title, lead)
+    for img in tree.xpath("//img"):
+        src = urljoin(base, img.get("src") or "")
+        if not img.get("src") or src in drop_images or _SPACER.search(src):
+            img.drop_tree()
+    for table in reversed(tree.xpath("//table")):  # innermost first
+        if not table.text_content().strip() and not table.xpath(".//img"):
+            table.drop_tree()  # held only the icons dropped above
+            continue
+        if not table.xpath(".//*[" + " or ".join(f"self::{t}" for t in _CONTENT) + "]"):
+            continue  # a real data table
+        cells = table.xpath(".//td | .//th")
+        for cell in cells:
+            cell.tag = "div"
+            table.addprevious(cell)
+        table.drop_tree()
+    lead = htmllib.escape(tree.text or "")
+    return lead + "".join(lxml_html.tostring(child, encoding="unicode") for child in tree)
+
+
+def _image_name(url: str) -> str:
+    """The file name without a size prefix, so 1200px-Roof.png and 250px-Roof.png match."""
+    return re.sub(r"^\d+px-", "", urlsplit(url).path.rsplit("/", 1)[-1]).lower()
+
+
+def _drop_repeats(tree, base: str, title: str | None, lead: str | None) -> None:  # noqa: ANN001
+    first = next((el for el in tree.iter("p", "h1", "h2", "h3") if el.text_content().strip()), None)
+    if (
+        first is not None
+        and first.tag != "p"
+        and title
+        and _squash(first.text_content()) == _squash(title)
+    ):
+        first.drop_tree()
+    if lead:
+        for img in tree.iter("img"):
+            if _image_name(urljoin(base, img.get("src") or "")) == _image_name(lead):
+                figure = next((a for a in img.iterancestors("figure")), None)
+                (figure if figure is not None else img).drop_tree()
+            break  # only the opening image can be a repeat of the lead
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\W+", " ", text).strip().lower()
+
+
+def image_srcs(doc: str, base: str, limit: int = 12) -> list[str]:
+    tree = parse(doc)
+    out: list[str] = []
+    for img in tree.iterfind(".//img"):
+        src = img.get("src")
+        if src and not src.startswith("data:"):
+            url = urljoin(base, src)
+            if url not in out:
+                out.append(url)
+        if len(out) >= limit:
+            break
+    return out
