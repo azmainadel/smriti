@@ -39,7 +39,7 @@ export const SearchBar = forwardRef<HTMLInputElement, Props>(function SearchBar(
           aria-label="Search your library"
           autoComplete="off"
           spellCheck={false}
-          className={`min-w-0 flex-1 bg-transparent font-display tracking-[-0.015em] text-ink outline-none placeholder:italic placeholder:text-hint/70 ${hero ? "text-[40px] leading-tight sm:text-[64px]" : "text-[28px]"}`}
+          className={`min-w-0 flex-1 bg-transparent font-display tracking-[-0.015em] text-ink outline-none placeholder:italic placeholder:text-hint/70 ${hero ? "text-[clamp(28px,8.6vw,64px)] leading-tight" : "text-[28px]"}`}
         />
         {value && (
           <button type="button" aria-label="Clear search" onClick={() => onChange("")} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-hint hover:bg-card hover:text-ink">
