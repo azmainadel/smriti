@@ -156,7 +156,9 @@ async def tag(ctx: StepContext) -> None:
             TagsOut,
         )
     text = (item.content.text if item.content else "") or ""
-    proposed = result.output.tags if result else keyword_tags(item.title or "", text)
+    # A tweet's title is "<author> on X: ...", which would make the author's name a topic.
+    title = "" if item.type == ItemType.tweet else item.title or ""
+    proposed = result.output.tags if result else keyword_tags(title, text)
     tags = await snap_tags(ctx, proposed)
 
     await ctx.session.execute(

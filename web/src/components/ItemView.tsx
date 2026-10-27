@@ -281,7 +281,7 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
     <aside className="flex w-full flex-col bg-card lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:rounded-l-[22px] lg:shadow-[var(--shadow-panel)]">
       <div className={`px-7 pt-7 ${item.title || item.url || item.status === "failed" ? "pb-6" : "hidden lg:block lg:pb-0"}`}>
         {/* On phones the stage right above already shows the title. */}
-        {item.title && <p className="hidden font-display text-[26px] leading-[1.15] lg:block">{item.title}</p>}
+        {item.title && item.type !== "tweet" && <p className="hidden font-display text-[26px] leading-[1.15] lg:block">{item.title}</p>}
         {item.url && (
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-accent-ink">
             {hostOf(item.url)} <ExternalIcon size={12} />
