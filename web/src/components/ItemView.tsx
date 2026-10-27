@@ -24,6 +24,10 @@ type Meta = {
   partial?: boolean;
   words?: number;
   tweet_text?: string;
+  handle?: string;
+  avatar?: string;
+  posts?: number;
+  published?: string;
 };
 
 type Props = {
@@ -157,6 +161,36 @@ function Stage({ item }: { item: ItemDetail }) {
     );
   }
 
+  if (item.type === "tweet") {
+    const thread = (meta.posts ?? 1) > 1;
+    return (
+      <article className="mx-auto max-w-[40rem] px-6 pb-24 pt-10 sm:px-10 lg:pt-24">
+        <div className="flex items-center gap-3">
+          {meta.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={meta.avatar} alt="" className="h-11 w-11 rounded-full" />
+          ) : (
+            <span className="h-11 w-11 rounded-full bg-well" />
+          )}
+          <div className="leading-tight">
+            <p className="font-medium">{meta.author}</p>
+            <p className="text-[14px] text-hint">@{meta.handle}</p>
+          </div>
+        </div>
+        {thread ? (
+          <div className="prose-reader mt-8 [&_p]:font-display [&_p]:text-[22px] [&_p]:leading-[1.4]" dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <p className="mt-8 whitespace-pre-line font-display text-[28px] leading-[1.3] sm:text-[34px]">{meta.tweet_text ?? item.title}</p>
+        )}
+        {item.assets.map((a) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={a.id} src={a.url} alt={a.caption ?? ""} className="mt-6 w-full rounded-2xl" />
+        ))}
+        {thread && <p className="label mt-6 text-hint">A thread of {meta.posts}</p>}
+      </article>
+    );
+  }
+
   if (item.type === "note") {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 sm:py-24">
@@ -170,7 +204,7 @@ function Stage({ item }: { item: ItemDetail }) {
       <p className="label text-hint">
         {[site, meta.author ?? meta.channel, meta.duration && duration(meta.duration), meta.pages && `${meta.pages} pages`].filter(Boolean).join("  ·  ")}
       </p>
-      <h1 className="mt-4 font-display text-[40px] leading-[1.08] tracking-[-0.01em] sm:text-[52px]">{item.title ?? item.url}</h1>
+      <h1 className="mt-4 font-display text-[32px] leading-[1.1] tracking-[-0.01em] sm:text-[52px] sm:leading-[1.08]">{item.title ?? item.url}</h1>
 
       {item.type === "video" && meta.video_id ? (
         <div className="mt-10 aspect-video overflow-hidden rounded-2xl bg-black shadow-[var(--shadow-panel)]">
@@ -190,16 +224,11 @@ function Stage({ item }: { item: ItemDetail }) {
           )}
           {meta.price && <p className="font-display text-5xl">{price(meta.price, meta.currency)}</p>}
         </div>
-      ) : item.lead_image && item.type !== "tweet" ? (
+      ) : item.lead_image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.lead_image} alt="" className="mt-10 w-full rounded-2xl shadow-[var(--shadow-card)]" />
       ) : null}
 
-      {item.type === "tweet" &&
-        item.assets.map((a) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={a.id} src={a.url} alt={a.caption ?? ""} className="mt-6 w-full rounded-2xl" />
-        ))}
 
       {item.status === "pending" && !html ? (
         <div className="breathe mt-12 space-y-3">
@@ -251,7 +280,8 @@ function Panel({ item, onClose, onOpenItem }: { item: ItemDetail; onClose: () =>
   return (
     <aside className="flex w-full flex-col bg-card lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:rounded-l-[22px] lg:shadow-[var(--shadow-panel)]">
       <div className={`px-7 pt-7 ${item.title || item.url || item.status === "failed" ? "pb-6" : "hidden lg:block lg:pb-0"}`}>
-        {item.title && <p className="font-display text-[26px] leading-[1.15]">{item.title}</p>}
+        {/* On phones the stage right above already shows the title. */}
+        {item.title && <p className="hidden font-display text-[26px] leading-[1.15] lg:block">{item.title}</p>}
         {item.url && (
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-accent-ink">
             {hostOf(item.url)} <ExternalIcon size={12} />
