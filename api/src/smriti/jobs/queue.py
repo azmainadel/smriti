@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from smriti.models import Job, JobStatus
 
 JOBS_CHANNEL = "smriti_jobs"
+SLOW_STEPS = ("enrich", "snapshot")
 
 
 def idempotency_key(item_id: uuid.UUID | None, step: str, version: int, suffix: str = "") -> str:
@@ -54,7 +55,8 @@ async def claim(session: AsyncSession, limit: int) -> list[Job]:
     ready = (
         select(Job.id)
         .where(Job.status == JobStatus.queued, Job.run_after <= func.now())
-        .order_by(Job.run_after, Job.id)
+        # Fast steps first: a new save should not wait behind a batch of slow enrichments.
+        .order_by(Job.step.in_(SLOW_STEPS) | Job.step.startswith("enrich."), Job.run_after, Job.id)
         .limit(limit)
         .with_for_update(skip_locked=True)
     )

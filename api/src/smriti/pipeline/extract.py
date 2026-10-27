@@ -18,6 +18,7 @@ from smriti.pipeline.extractors.media import extract_audio, extract_youtube, you
 from smriti.pipeline.extractors.pdf import parse_pdf
 from smriti.pipeline.extractors.simple import extract_image, extract_note, palette_from_url
 from smriti.pipeline.extractors.tweet import extract_tweet
+from smriti.pipeline.index import index
 from smriti.urls import canonicalize, domain_of
 
 log = logging.getLogger(__name__)
@@ -145,3 +146,7 @@ async def extract(ctx: StepContext) -> None:
                 "lead_aspect": round(decoded.width / max(decoded.height, 1), 3),
                 "card_key": await ctx.put("assets/0.card.webp", card, "image/webp"),
             }
+
+    # Readable now: make it searchable by its title and text before the slow enrichment runs.
+    # The final index step refreshes these fields with tags, entities and summaries.
+    await index(ctx)
