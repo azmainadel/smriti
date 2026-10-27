@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import type { ItemDetail } from "@/lib/api";
-import { duration, hostOf, price, timeAgo } from "@/lib/format";
+import { duration, hostOf, inkOn, price, timeAgo } from "@/lib/format";
 import { recordEvent, useDeleteItem, useItem, useRetry, useUpdateItem } from "@/lib/queries";
 import { sanitize } from "@/lib/sanitize";
 import { useHotkeys } from "@/lib/shortcuts";
@@ -147,7 +147,9 @@ function Stage({ item }: { item: ItemDetail }) {
               className="group/sw flex flex-1 items-end justify-center pb-6 transition-[flex] duration-500 ease-[var(--ease-out)] hover:flex-[1.6]"
               style={{ background: c }}
             >
-              <span className="font-mono text-sm uppercase text-white mix-blend-difference">{c}</span>
+              <span className="font-mono text-sm uppercase" style={{ color: inkOn(c) }}>
+                {c}
+              </span>
             </button>
           ))}
         </div>

@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { type KeyboardEvent, type MouseEvent, memo } from "react";
 import type { Item } from "@/lib/api";
-import { duration, hostOf, price } from "@/lib/format";
+import { duration, hostOf, inkOn, price } from "@/lib/format";
 import { MoreIcon } from "./ui/icons";
 
 type Meta = {
@@ -136,7 +136,7 @@ function Tile({ item }: { item: Item }) {
         <div className="flex h-[170px]">
           {colors.map((c) => (
             <div key={c} className="flex flex-1 items-end justify-center pb-3" style={{ background: c }}>
-              <span className="rotate-180 font-mono text-[10px] uppercase tracking-wider text-white/80 mix-blend-difference [writing-mode:vertical-rl]">
+              <span className="rotate-180 font-mono text-[10px] uppercase tracking-wider [writing-mode:vertical-rl]" style={{ color: inkOn(c) }}>
                 {c.replace("#", "")}
               </span>
             </div>
