@@ -103,3 +103,17 @@ def test_email_planning() -> None:
     assert items[0].note == "both on focus"
     note = plan(normalize({"subject": "Idea", "text": "Make a garden planner"}))
     assert note[0].text == "Make a garden planner" and note[0].title == "Idea"
+
+
+def test_layout_tables_unwrap_and_icons_go() -> None:
+    from smriti.pipeline.extractors.html import clean_layout
+
+    html = (
+        '<table><tr><td><img src="/nav.gif"></td><td><img src="/trans_1x1.gif"></td></tr></table>'
+        "<table><tr><td><p>July 2023</p><p>Essay text.</p></td></tr></table>"
+        "<table><tr><th>Model</th><th>Score</th></tr><tr><td>A</td><td>1</td></tr></table>"
+    )
+    out = clean_layout(html, "https://example.com/essay", {"https://example.com/nav.gif"})
+    assert "nav.gif" not in out and "trans_1x1" not in out
+    assert "<div><p>July 2023</p><p>Essay text.</p></div>" in out
+    assert out.count("<table") == 1  # the data table stays

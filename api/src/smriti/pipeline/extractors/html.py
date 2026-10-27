@@ -101,6 +101,50 @@ def html_to_text(doc: str) -> str:
     return "\n\n".join(blocks) if blocks else tree.text_content().strip()
 
 
+_CONTENT = (
+    "p",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "pre",
+    "ul",
+    "ol",
+    "img",
+    "figure",
+)
+_SPACER = re.compile(r"(spacer|trans_1x1|pixel|blank)\.(gif|png)", re.I)
+
+
+def clean_layout(doc: str, base: str, drop_images: set[str] | frozenset[str] = frozenset()) -> str:
+    """Undo old-web page layout inside extracted HTML.
+
+    Tables that hold paragraphs or images are layout, not data: unwrap them so the reader
+    styles the text as prose. Images that turned out to be icons, spacers or banners go.
+    """
+    tree = parse(f"<div>{doc}</div>")
+    for img in tree.xpath("//img"):
+        src = urljoin(base, img.get("src") or "")
+        if not img.get("src") or src in drop_images or _SPACER.search(src):
+            img.drop_tree()
+    for table in reversed(tree.xpath("//table")):  # innermost first
+        if not table.text_content().strip() and not table.xpath(".//img"):
+            table.drop_tree()  # held only the icons dropped above
+            continue
+        if not table.xpath(".//*[" + " or ".join(f"self::{t}" for t in _CONTENT) + "]"):
+            continue  # a real data table
+        cells = table.xpath(".//td | .//th")
+        for cell in cells:
+            cell.tag = "div"
+            table.addprevious(cell)
+        table.drop_tree()
+    lead = htmllib.escape(tree.text or "")
+    return lead + "".join(lxml_html.tostring(child, encoding="unicode") for child in tree)
+
+
 def image_srcs(doc: str, base: str, limit: int = 12) -> list[str]:
     tree = parse(doc)
     out: list[str] = []

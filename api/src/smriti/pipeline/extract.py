@@ -14,6 +14,7 @@ from smriti.models import Asset, ItemType
 from smriti.pipeline.context import PermanentError, StepContext
 from smriti.pipeline.extractors.article import extract_article
 from smriti.pipeline.extractors.base import Extraction, Image
+from smriti.pipeline.extractors.html import clean_layout
 from smriti.pipeline.extractors.media import extract_audio, extract_youtube, youtube_id
 from smriti.pipeline.extractors.pdf import parse_pdf
 from smriti.pipeline.extractors.simple import extract_image, extract_note, palette_from_url
@@ -24,7 +25,8 @@ from smriti.urls import canonicalize, domain_of
 log = logging.getLogger(__name__)
 MAX_TEXT = 2_000_000
 MAX_IMAGES = 8
-MIN_IMAGE_SIDE = 80
+MIN_IMAGE_SIDE = 100  # smaller is an icon, a button or a spacer, not content
+MAX_IMAGE_ASPECT = 5  # wider than this is a banner or a rule
 CARD_SIZE = 720
 
 
@@ -70,26 +72,31 @@ async def _download_image(client: httpx.AsyncClient, url: str) -> bytes | None:
             return None
         if len(r.content) > 15 * 1024 * 1024:
             return None
-        img = open_image(r.content)
-        return r.content if min(img.size) >= MIN_IMAGE_SIDE else None
+        w, h = open_image(r.content).size
+        if min(w, h) < MIN_IMAGE_SIDE or max(w, h) / max(min(w, h), 1) > MAX_IMAGE_ASPECT:
+            return None
+        return r.content
     except Exception as e:  # noqa: BLE001 - a broken image never fails the item
         log.debug("image %s skipped: %s", url, e)
         return None
 
 
-async def _collect_images(ex: Extraction) -> list[Image]:
+async def _collect_images(ex: Extraction) -> tuple[list[Image], set[str]]:
+    """Download candidate images. Returns the keepers and the URLs that turned out to be
+    icons, spacers, banners or broken, so the article HTML can drop them too."""
     images = list(ex.images)
+    rejected: set[str] = set()
     if ex.image_urls:
         s = get_settings()
+        urls = ex.image_urls[: MAX_IMAGES * 2]
         async with httpx.AsyncClient(
             timeout=15, follow_redirects=True, headers={"User-Agent": s.user_agent}
         ) as client:
-            downloaded = await asyncio.gather(
-                *(_download_image(client, u) for u in ex.image_urls[: MAX_IMAGES * 2])
-            )
+            downloaded = await asyncio.gather(*(_download_image(client, u) for u in urls))
         kind = "keyframe" if ex.type == ItemType.video else "image"
         images += [Image(d, kind=kind) for d in downloaded if d]
-    return images[:MAX_IMAGES]
+        rejected = {u for u, d in zip(urls, downloaded, strict=True) if not d}
+    return images[:MAX_IMAGES], rejected
 
 
 async def extract(ctx: StepContext) -> None:
@@ -118,7 +125,9 @@ async def extract(ctx: StepContext) -> None:
     # Re-running extract replaces the asset set; storage keys are positional so blobs are overwritten.
     await ctx.session.execute(delete(Asset).where(Asset.item_id == item.id))
     item.assets = []
-    images = await _collect_images(ex)
+    images, rejected = await _collect_images(ex)
+    if content.html:
+        content.html = clean_layout(content.html, item.source_url or "", drop_images=rejected)
     item.lead_image_key = None
     for i, img in enumerate(images):
         data = await asyncio.to_thread(thumbnail, img.data, 1600)
