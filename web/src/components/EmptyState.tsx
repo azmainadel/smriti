@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { importFile } from "@/lib/api";
 import { keys } from "@/lib/queries";
-import { Button } from "./ui/button";
 import { toaster } from "./ui/toast";
 
 const SOURCES = [
@@ -59,7 +58,11 @@ export function EmptyState({ onCompose }: { onCompose: () => void }) {
       </div>
       <input ref={input} type="file" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
       <p className="mt-10 text-muted">
-        Or <Button variant="quiet" onClick={onCompose}>save your first link or note</Button>, drop a file anywhere, or install the browser extension.
+        Or{" "}
+        <button type="button" onClick={onCompose} className="font-medium text-accent-ink underline decoration-accent/40 underline-offset-4 hover:decoration-accent">
+          save your first link or note
+        </button>
+        , paste a link anywhere, or drop a file on this page.
       </p>
     </div>
   );
