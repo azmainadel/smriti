@@ -116,9 +116,9 @@ function Tile({ item }: { item: Item }) {
 
     case "quote":
       return (
-        <figure className="px-6 pb-6 pt-5">
+        <figure className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
           <span aria-hidden className="block font-display text-5xl leading-none text-accent">“</span>
-          <blockquote className="-mt-3 font-display text-[22px] leading-[1.28] text-ink">{meta.quote ?? item.summary ?? item.title}</blockquote>
+          <blockquote className="-mt-3 font-display text-[18px] leading-[1.28] text-ink sm:text-[22px]">{meta.quote ?? item.summary ?? item.title}</blockquote>
           {(meta.attribution || site) && <figcaption className="label mt-4 text-hint">{meta.attribution ?? site}</figcaption>}
         </figure>
       );
@@ -222,7 +222,7 @@ function TextTile({ kicker, title, site, summary }: { kicker?: string | null; ti
   return (
     <div className="flex min-h-[150px] flex-col p-5">
       {kicker && <span className="label truncate text-hint">{kicker}</span>}
-      <p className="mt-3 line-clamp-4 font-display text-[24px] leading-[1.15] text-ink">{title}</p>
+      <p className="mt-3 line-clamp-4 font-display text-[19px] leading-[1.15] sm:text-[24px] text-ink">{title}</p>
       {summary && <p className="mt-3 line-clamp-2 text-[13px] leading-snug text-muted">{summary}</p>}
       {site && <span className="mt-auto pt-4 text-[12px] text-hint">{site}</span>}
     </div>
