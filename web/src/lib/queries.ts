@@ -97,7 +97,8 @@ export function useUpdateItem(id: string) {
 
 /**
  * Delete with a grace period: the item leaves the page at once, and the server delete runs
- * only after the undo window closes. Undo puts the feed back as it was.
+ * only after the undo window closes. Undo puts the feed back as it was. Closing the page inside
+ * the window keeps the item: browsers drop cross-origin DELETEs sent while a page unloads.
  */
 export function useDeleteItem() {
   const qc = useQueryClient();
@@ -110,6 +111,18 @@ export function useDeleteItem() {
         data ? { ...data, hits: data.hits.filter((h) => h.item.id !== id) } : data,
       );
       let undone = false;
+      const commit = () => {
+        if (undone) return;
+        void call(api.DELETE("/items/{item_id}", { params: { path: { item_id: id } } }))
+          .then(() => {
+            qc.invalidateQueries({ queryKey: ["search"] });
+            qc.invalidateQueries({ queryKey: ["resurface"] });
+          })
+          .catch((err) => {
+            restore();
+            toaster.create({ title: "Couldn't delete", description: String(err), type: "error" });
+          });
+      };
       toaster.create({
         title: "Deleted",
         duration: 5000,
@@ -120,18 +133,7 @@ export function useDeleteItem() {
             restore();
           },
         },
-        onStatusChange: ({ status }) => {
-          if (status !== "unmounted" || undone) return;
-          void call(api.DELETE("/items/{item_id}", { params: { path: { item_id: id } } }))
-            .then(() => {
-              qc.invalidateQueries({ queryKey: ["search"] });
-              qc.invalidateQueries({ queryKey: ["resurface"] });
-            })
-            .catch((err) => {
-              restore();
-              toaster.create({ title: "Couldn't delete", description: String(err), type: "error" });
-            });
-        },
+        onStatusChange: ({ status }) => status === "unmounted" && commit(),
       });
     },
     [qc],
