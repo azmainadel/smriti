@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from smriti.pipeline.extractors.article import extract_article
+from smriti.pipeline.extractors.article import extract_article, strip_site_suffix
 from smriti.pipeline.extractors.pdf import parse_pdf
 from smriti.pipeline.extractors.simple import extract_note, palette_from_url
 from smriti.pipeline.extractors.tweet import _thread_from_page
@@ -117,3 +117,13 @@ def test_layout_tables_unwrap_and_icons_go() -> None:
     assert "nav.gif" not in out and "trans_1x1" not in out
     assert "<div><p>July 2023</p><p>Essay text.</p></div>" in out
     assert out.count("<table") == 1  # the data table stays
+
+
+def test_site_suffix_leaves_titles() -> None:
+    wiki = "https://en.wikipedia.org/wiki/Japanese_garden"
+    assert strip_site_suffix("Japanese garden - Wikipedia", None, wiki) == "Japanese garden"
+    assert (
+        strip_site_suffix("How it works | The Verge", "The Verge", "https://x.com")
+        == "How it works"
+    )
+    assert strip_site_suffix("Rust vs Go - a comparison", None, wiki) == "Rust vs Go - a comparison"

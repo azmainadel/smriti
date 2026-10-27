@@ -1,5 +1,8 @@
 """Articles: boilerplate removal that keeps headings, figures and captions."""
 
+import re
+from urllib.parse import urlsplit
+
 import trafilatura
 
 from smriti.models import ItemType
@@ -29,7 +32,9 @@ def extract_article(doc: str, url: str) -> Extraction:
     meta = trafilatura.extract_metadata(doc, default_url=url)
     text = h.html_to_text(body_html) if body_html else ""
 
+    site_name = tags.get("og:site_name") or (meta.sitename if meta else None)
     title = (meta.title if meta else None) or tags.get("og:title") or _title_tag(tree)
+    title = title and strip_site_suffix(title, site_name, url)
     description = (
         tags.get("og:description")
         or tags.get("description")
@@ -43,7 +48,7 @@ def extract_article(doc: str, url: str) -> Extraction:
         text=text,
         html=body_html,
         lang=(tree.get("lang") or "").split("-")[0] or None,
-        site_name=tags.get("og:site_name") or (meta.sitename if meta else None),
+        site_name=site_name,
         description=description,
         canonical_url=h.canonical_link(tree, url) or tags.get("og:url"),
         type=ItemType.article if text else ItemType.link,
@@ -69,3 +74,23 @@ def extract_article(doc: str, url: str) -> Extraction:
 def _title_tag(tree) -> str | None:  # noqa: ANN001
     el = tree.find(".//title")
     return el.text_content().strip() if el is not None and el.text_content() else None
+
+
+_SUFFIX = re.compile(r"\s+[-|–—·:]\s+([^-|–—·:]{2,40})$")
+
+
+def strip_site_suffix(title: str, site_name: str | None, url: str) -> str:
+    """Drop a trailing " - Wikipedia" or " | The Verge" when it only names the site."""
+    m = _SUFFIX.search(title)
+    if not m or m.start() < 3:
+        return title
+    suffix = _squash(m.group(1))
+    if suffix and (
+        suffix == _squash(site_name or "") or suffix in _squash(urlsplit(url).hostname or "")
+    ):
+        return title[: m.start()]
+    return title
+
+
+def _squash(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", s.lower())

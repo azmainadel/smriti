@@ -100,7 +100,12 @@ def keyword_tags(title: str, text: str, limit: int = 6) -> list[str]:
     bigrams: Counter[str] = Counter()
     words = [w.lower() for w in _WORD.findall(text[:30_000])]
     for a, b in zip(words, words[1:], strict=False):
-        if a not in STOPWORDS | GENERIC and b not in STOPWORDS | GENERIC and len(a) > 2 and len(b) > 2:
+        if (
+            a not in STOPWORDS | GENERIC
+            and b not in STOPWORDS | GENERIC
+            and len(a) > 2
+            and len(b) > 2
+        ):
             bigrams[f"{a} {b}"] += 1
     candidates = [(w, c) for w, c in freqs.most_common(40) if not w.isdigit()]
     candidates += [(b, c * 2) for b, c in bigrams.most_common(10) if c >= 3]
