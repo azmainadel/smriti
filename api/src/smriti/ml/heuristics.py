@@ -21,6 +21,8 @@ STOPWORDS = frozenset(
 )
 _WORD = re.compile(r"[A-Za-z][A-Za-z0-9+#.-]*[A-Za-z0-9+#]|[A-Za-z]")
 _SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-Z\"“(])")
+# Links and hex colors split into word-like junk ("www-youtube-com", "a506b").
+_NOT_WORDS = re.compile(r"https?://\S+|www\.\S+|#[0-9A-Fa-f]{3,8}\b")
 _PROPER = re.compile(r"\b([A-Z][a-z]+(?:\s+(?:of|de|van|von|the)?\s*[A-Z][a-z]+)+|[A-Z]{2,6}\b)")
 
 
@@ -94,6 +96,7 @@ GENERIC = frozenset(
 
 
 def keyword_tags(title: str, text: str, limit: int = 6) -> list[str]:
+    title, text = _NOT_WORDS.sub(" ", title), _NOT_WORDS.sub(" ", text)
     freqs = _freqs(f"{title} {title} {title} {text[:30_000]}")
     for word in GENERIC:
         freqs.pop(word, None)

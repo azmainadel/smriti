@@ -158,3 +158,11 @@ def test_resurface_scoring() -> None:
     assert importance(True, 3, False) > importance(False, 0, False)
     assert relevance(0.3) == 0 and relevance(0.95) == 1
     assert combine(1, 1, 1, dismissals=1) == pytest.approx(combine(1, 1, 1, dismissals=0) / 2)
+
+
+def test_tags_skip_links_and_hex() -> None:
+    tags = keyword_tags(
+        "Palette #264653 #2a9d8f", "watch https://www.youtube.com/watch?v=x #e9c46a garden garden"
+    )
+    assert not {"https", "www-youtube-com", "a9d8f", "e9c46a"} & set(tags)
+    assert "garden" in tags
