@@ -113,11 +113,17 @@ async def extract(ctx: StepContext) -> None:
     if ex.canonical_url and domain_of(ex.canonical_url) == item.domain:
         item.canonical_url = canonicalize(ex.canonical_url)
     item.site_name = ex.site_name or item.site_name
-    item.meta = {
-        **item.meta,
+    extracted = {
         **ex.meta,
         **({"description": ex.description[:1000]} if ex.description else {}),
         **({"colors": ex.palette} if ex.palette else {}),
+    }
+    # Forget what the last run extracted, so a re-run drops fields the page no longer yields.
+    stale = set(item.meta.get("extracted_keys", ()))
+    item.meta = {
+        **{k: v for k, v in item.meta.items() if k not in stale},
+        **extracted,
+        "extracted_keys": sorted(extracted),
     }
 
     content = ctx.content()
@@ -125,9 +131,6 @@ async def extract(ctx: StepContext) -> None:
     content.html = ex.html or content.html
     content.lang = ex.lang
 
-    # Re-running extract replaces the asset set; storage keys are positional so blobs are overwritten.
-    await ctx.session.execute(delete(Asset).where(Asset.item_id == item.id))
-    item.assets = []
     images, rejected, lead_url = await _collect_images(ex)
     if content.html:
         content.html = clean_layout(
@@ -137,33 +140,38 @@ async def extract(ctx: StepContext) -> None:
             title=item.title,
             lead=lead_url,
         )
-    item.lead_image_key = None
-    for i, img in enumerate(images):
-        data = await asyncio.to_thread(thumbnail, img.data, 1600)
-        key = await ctx.put(f"assets/{i}.webp", data, "image/webp")
-        decoded = await asyncio.to_thread(open_image, data)
-        item.assets.append(
-            Asset(
-                item_id=item.id,
-                kind=img.kind,
-                storage_key=key,
-                mime="image/webp",
-                width=decoded.width,
-                height=decoded.height,
-                caption=img.caption,
-                position=i,
+    # A re-run replaces the asset set (keys are positional, so blobs are overwritten), unless
+    # every download failed: rate limits and dead hosts must not cost the images saved before.
+    if images or not item.lead_image_key:
+        await ctx.session.execute(delete(Asset).where(Asset.item_id == item.id))
+        item.assets = []
+        item.lead_image_key = None
+        for i, img in enumerate(images):
+            data = await asyncio.to_thread(thumbnail, img.data, 1600)
+            key = await ctx.put(f"assets/{i}.webp", data, "image/webp")
+            decoded = await asyncio.to_thread(open_image, data)
+            item.assets.append(
+                Asset(
+                    item_id=item.id,
+                    kind=img.kind,
+                    storage_key=key,
+                    mime="image/webp",
+                    width=decoded.width,
+                    height=decoded.height,
+                    caption=img.caption,
+                    position=i,
+                )
             )
-        )
-        if i == 0:
-            item.lead_image_key = key
-            # Grid cards are ~300 px wide; a 720 px copy covers 2x screens at a fraction of the bytes.
-            card = await asyncio.to_thread(thumbnail, img.data, CARD_SIZE)
-            # Reassign rather than mutate: SQLAlchemy does not track in-place JSONB edits.
-            item.meta = {
-                **item.meta,
-                "lead_aspect": round(decoded.width / max(decoded.height, 1), 3),
-                "card_key": await ctx.put("assets/0.card.webp", card, "image/webp"),
-            }
+            if i == 0:
+                item.lead_image_key = key
+                # Grid cards are ~300 px wide; a 720 px copy covers 2x screens at a fraction of the bytes.
+                card = await asyncio.to_thread(thumbnail, img.data, CARD_SIZE)
+                # Reassign rather than mutate: SQLAlchemy does not track in-place JSONB edits.
+                item.meta = {
+                    **item.meta,
+                    "lead_aspect": round(decoded.width / max(decoded.height, 1), 3),
+                    "card_key": await ctx.put("assets/0.card.webp", card, "image/webp"),
+                }
 
     # Readable now: make it searchable by its title and text before the slow enrichment runs.
     # The final index step refreshes these fields with tags, entities and summaries.
